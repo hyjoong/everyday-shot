@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:everyday_shot/constants/app_theme.dart';
+import 'package:everyday_shot/screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
       title: '매일한컷',
       theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      home: const Placeholder(),
+      home: const HomeScreen(),
     );
   }
 }
