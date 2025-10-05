@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:everyday_shot/constants/app_theme.dart';
 import 'package:everyday_shot/screens/home_screen.dart';
 
@@ -15,6 +16,15 @@ class MyApp extends StatelessWidget {
       title: '매일한컷',
       theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
+      locale: const Locale('ko', 'KR'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ko', 'KR'),
+      ],
       home: const HomeScreen(),
     );
   }
