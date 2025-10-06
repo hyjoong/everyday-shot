@@ -3,6 +3,7 @@ import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/screens/calendar_view.dart';
 import 'package:everyday_shot/screens/feed_view.dart';
 import 'package:everyday_shot/screens/gallery_view.dart';
+import 'package:everyday_shot/screens/add_photo_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -31,6 +32,17 @@ class HomeScreen extends StatelessWidget {
             FeedView(),
             GalleryView(),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddPhotoScreen(),
+              ),
+            );
+          },
+          child: const Icon(Icons.add),
         ),
       ),
     );
