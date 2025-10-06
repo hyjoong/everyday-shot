@@ -41,6 +41,13 @@ dependencies:
   table_calendar: ^3.1.2
   intl: ^0.19.0
 
+  # Database
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+
+  # UUID
+  uuid: ^4.5.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
