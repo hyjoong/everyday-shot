@@ -303,77 +303,7 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 날짜 선택
-            const Text(
-              '날짜',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            InkWell(
-              onTap: _selectDate,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.border,
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${_selectedDate.year}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.day.toString().padLeft(2, '0')}',
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const Icon(
-                      Icons.calendar_today,
-                      color: AppColors.textSecondary,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // 메모 입력
-            const Text(
-              '메모 (선택)',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _memoController,
-              maxLines: 4,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-              ),
-              decoration: const InputDecoration(
-                hintText: '오늘의 한마디를 남겨보세요',
-                hintStyle: TextStyle(
-                  color: AppColors.textTertiary,
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // 오늘 촬영한 사진
+            // 오늘 촬영한 사진 (상단 배치)
             if (_todayPhotos.isNotEmpty) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -473,16 +403,87 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
                   },
                 ),
               ),
+              const SizedBox(height: 24),
             ] else if (_loadingPhotos) ...[
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: EdgeInsets.symmetric(vertical: 20),
                   child: CircularProgressIndicator(
                     color: AppColors.accent,
                   ),
                 ),
               ),
+              const SizedBox(height: 24),
             ],
+
+            // 날짜 선택
+            const Text(
+              '날짜',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _selectDate,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.border,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${_selectedDate.year}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.day.toString().padLeft(2, '0')}',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.calendar_today,
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // 메모 입력
+            const Text(
+              '메모 (선택)',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _memoController,
+              maxLines: 4,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+              ),
+              decoration: const InputDecoration(
+                hintText: '오늘의 한마디를 남겨보세요',
+                hintStyle: TextStyle(
+                  color: AppColors.textTertiary,
+                ),
+              ),
+            ),
           ],
         ),
       ),
