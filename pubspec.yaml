@@ -54,6 +54,8 @@ dependencies:
   # Image
   image_picker: ^1.1.2
   path_provider: ^2.1.4
+  image: ^4.3.0
+  photo_manager: ^3.5.0
 
 dev_dependencies:
   flutter_test:

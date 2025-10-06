@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
 import 'package:everyday_shot/features/photo/services/image_service.dart';
@@ -25,11 +27,30 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
   late DateTime _selectedDate;
   File? _selectedImage;
   bool _isSaving = false;
+  List<AssetEntity> _todayPhotos = [];
+  bool _loadingPhotos = false;
 
   @override
   void initState() {
     super.initState();
     _selectedDate = widget.initialDate;
+    _loadTodayPhotos();
+  }
+
+  /// 선택된 날짜의 갤러리 사진 로드
+  Future<void> _loadTodayPhotos() async {
+    setState(() {
+      _loadingPhotos = true;
+    });
+
+    final photos = await _imageService.getPhotosForDate(_selectedDate);
+
+    if (mounted) {
+      setState(() {
+        _todayPhotos = photos;
+        _loadingPhotos = false;
+      });
+    }
   }
 
   @override
@@ -74,9 +95,31 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
     );
 
     if (imagePath != null) {
+      final imageFile = File(imagePath);
+
+      // EXIF에서 촬영 날짜 추출 시도
+      final DateTime? exifDate = await _imageService.getImageDateTime(imageFile);
+
       setState(() {
-        _selectedImage = File(imagePath);
+        _selectedImage = imageFile;
+        // EXIF 날짜가 있으면 자동 설정
+        if (exifDate != null) {
+          _selectedDate = exifDate;
+        }
       });
+
+      // EXIF 날짜를 찾았다면 사용자에게 알림
+      if (exifDate != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '촬영 날짜로 자동 설정: ${exifDate.year}.${exifDate.month.toString().padLeft(2, '0')}.${exifDate.day.toString().padLeft(2, '0')}',
+            ),
+            backgroundColor: AppColors.accent,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -328,6 +371,118 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 32),
+
+            // 오늘 촬영한 사진
+            if (_todayPhotos.isNotEmpty) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${_selectedDate.month}월 ${_selectedDate.day}일 촬영한 사진',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    '${_todayPhotos.length}장',
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 100,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _todayPhotos.length,
+                  itemBuilder: (context, index) {
+                    final asset = _todayPhotos[index];
+                    return GestureDetector(
+                      onTap: () async {
+                        // 사진 선택
+                        final file = await asset.file;
+                        if (file != null) {
+                          final savedPath = await _imageService.saveImage(file);
+                          final imageFile = File(savedPath);
+
+                          // EXIF 날짜 추출
+                          final exifDate = await _imageService.getImageDateTime(imageFile);
+
+                          setState(() {
+                            _selectedImage = imageFile;
+                            if (exifDate != null) {
+                              _selectedDate = exifDate;
+                            }
+                          });
+
+                          if (mounted && exifDate != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '촬영 날짜로 자동 설정: ${exifDate.year}.${exifDate.month.toString().padLeft(2, '0')}.${exifDate.day.toString().padLeft(2, '0')}',
+                                ),
+                                backgroundColor: AppColors.accent,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: FutureBuilder<Uint8List?>(
+                            future: asset.thumbnailDataWithSize(
+                              const ThumbnailSize.square(200),
+                            ),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.done &&
+                                  snapshot.data != null) {
+                                return Image.memory(
+                                  snapshot.data!,
+                                  fit: BoxFit.cover,
+                                );
+                              }
+                              return Container(
+                                color: AppColors.surfaceVariant,
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.accent,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ] else if (_loadingPhotos) ...[
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(
+                    color: AppColors.accent,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
