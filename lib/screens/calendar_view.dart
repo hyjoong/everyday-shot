@@ -6,7 +6,9 @@ import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
 
 class CalendarView extends StatefulWidget {
-  const CalendarView({super.key});
+  final Function(DateTime)? onDateSelected;
+
+  const CalendarView({super.key, this.onDateSelected});
 
   @override
   State<CalendarView> createState() => _CalendarViewState();
@@ -210,12 +212,14 @@ class _CalendarViewState extends State<CalendarView> {
             ),
           ),
 
-          onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-            });
-          },
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+                // 상위 위젯에 선택된 날짜 전달
+                widget.onDateSelected?.call(selectedDay);
+              },
 
               onPageChanged: (focusedDay) {
                 _focusedDay = focusedDay;

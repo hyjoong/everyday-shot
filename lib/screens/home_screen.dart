@@ -5,8 +5,22 @@ import 'package:everyday_shot/screens/feed_view.dart';
 import 'package:everyday_shot/screens/gallery_view.dart';
 import 'package:everyday_shot/screens/add_photo_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  DateTime? _selectedDate;
+
+  /// 캘린더에서 날짜 선택 시 호출
+  void _onDateSelected(DateTime date) {
+    setState(() {
+      _selectedDate = date;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +40,11 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            CalendarView(),
-            FeedView(),
-            GalleryView(),
+            CalendarView(onDateSelected: _onDateSelected),
+            const FeedView(),
+            const GalleryView(),
           ],
         ),
         floatingActionButton: FloatingActionButton(
@@ -38,7 +52,9 @@ class HomeScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const AddPhotoScreen(),
+                builder: (context) => AddPhotoScreen(
+                  initialDate: _selectedDate ?? DateTime.now(),
+                ),
               ),
             );
           },

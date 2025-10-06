@@ -9,7 +9,9 @@ import 'package:everyday_shot/features/photo/services/image_service.dart';
 import 'package:everyday_shot/models/photo.dart';
 
 class AddPhotoScreen extends StatefulWidget {
-  const AddPhotoScreen({super.key});
+  final DateTime initialDate;
+
+  const AddPhotoScreen({super.key, required this.initialDate});
 
   @override
   State<AddPhotoScreen> createState() => _AddPhotoScreenState();
@@ -20,9 +22,15 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
   final TextEditingController _memoController = TextEditingController();
   final Uuid _uuid = const Uuid();
 
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
   File? _selectedImage;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.initialDate;
+  }
 
   @override
   void dispose() {
