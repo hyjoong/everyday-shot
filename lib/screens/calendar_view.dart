@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +23,97 @@ class _CalendarViewState extends State<CalendarView> {
     return photo != null ? ['photo'] : [];
   }
 
+  /// 커스텀 셀 빌더 (사진 썸네일 표시)
+  Widget? _cellBuilder(BuildContext context, DateTime day, DateTime focusedDay) {
+    final photoProvider = context.read<PhotoProvider>();
+    final photo = photoProvider.getPhotoByDate(day);
+
+    if (photo == null) return null;
+
+    final isToday = isSameDay(day, DateTime.now());
+    final isSelected = isSameDay(day, _selectedDay);
+
+    return Container(
+      margin: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: isToday
+            ? Border.all(color: AppColors.accentLight, width: 2)
+            : null,
+      ),
+      child: Stack(
+        children: [
+          // 사진 썸네일
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: Image.file(
+              File(photo.imagePath),
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: AppColors.surfaceVariant,
+                  child: const Center(
+                    child: Icon(
+                      Icons.broken_image,
+                      size: 16,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // 날짜 텍스트 (오버레이)
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.5),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+          // 날짜 숫자
+          Positioned(
+            top: 2,
+            right: 4,
+            child: Text(
+              '${day.day}',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                shadows: const [
+                  Shadow(
+                    color: Colors.black,
+                    blurRadius: 2,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // 선택 표시
+          if (isSelected)
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppColors.accent,
+                  width: 2,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<PhotoProvider>(
@@ -36,52 +128,56 @@ class _CalendarViewState extends State<CalendarView> {
               eventLoader: _getEventsForDay,
               locale: 'ko_KR',
 
-          calendarStyle: CalendarStyle(
-            outsideDaysVisible: true,
+              // 커스텀 셀 빌더 추가
+              calendarBuilders: CalendarBuilders(
+                defaultBuilder: _cellBuilder,
+                selectedBuilder: _cellBuilder,
+                todayBuilder: _cellBuilder,
+                outsideBuilder: _cellBuilder,
+              ),
 
-            // 오늘 날짜
-            todayDecoration: BoxDecoration(
-              color: AppColors.accentLight.withOpacity(0.3),
-              shape: BoxShape.circle,
-            ),
-            todayTextStyle: const TextStyle(
-              color: AppColors.accentLight,
-              fontWeight: FontWeight.bold,
-            ),
+              calendarStyle: CalendarStyle(
+                outsideDaysVisible: true,
+                cellMargin: EdgeInsets.zero,
 
-            // 선택된 날짜
-            selectedDecoration: const BoxDecoration(
-              color: AppColors.accent,
-              shape: BoxShape.circle,
-            ),
-            selectedTextStyle: const TextStyle(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+                // 오늘 날짜
+                todayDecoration: BoxDecoration(
+                  color: AppColors.accentLight.withOpacity(0.3),
+                  shape: BoxShape.circle,
+                ),
+                todayTextStyle: const TextStyle(
+                  color: AppColors.accentLight,
+                  fontWeight: FontWeight.bold,
+                ),
 
-            // 기본 날짜
-            defaultTextStyle: const TextStyle(
-              color: AppColors.textPrimary,
-            ),
+                // 선택된 날짜
+                selectedDecoration: const BoxDecoration(
+                  color: AppColors.accent,
+                  shape: BoxShape.circle,
+                ),
+                selectedTextStyle: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
 
-            // 주말
-            weekendTextStyle: const TextStyle(
-              color: AppColors.textSecondary,
-            ),
+                // 기본 날짜
+                defaultTextStyle: const TextStyle(
+                  color: AppColors.textPrimary,
+                ),
 
-            // 다른 달 날짜
-            outsideTextStyle: const TextStyle(
-              color: AppColors.textTertiary,
-            ),
+                // 주말
+                weekendTextStyle: const TextStyle(
+                  color: AppColors.textSecondary,
+                ),
 
-            // 마커
-            markerDecoration: const BoxDecoration(
-              color: AppColors.accent,
-              shape: BoxShape.circle,
-            ),
-            markerSize: 6,
-            markersMaxCount: 1,
-          ),
+                // 다른 달 날짜
+                outsideTextStyle: const TextStyle(
+                  color: AppColors.textTertiary,
+                ),
+
+                // 마커 숨김 (썸네일로 대체)
+                markersMaxCount: 0,
+              ),
 
           // 헤더 스타일
           headerStyle: const HeaderStyle(
