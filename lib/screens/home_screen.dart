@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/screens/calendar_view.dart';
 import 'package:everyday_shot/screens/feed_view.dart';
+import 'package:everyday_shot/screens/gallery_view.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -9,7 +10,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('매일한컷'),
@@ -20,6 +21,7 @@ class HomeScreen extends StatelessWidget {
             tabs: [
               Tab(text: '캘린더'),
               Tab(text: '피드'),
+              Tab(text: '갤러리'),
             ],
           ),
         ),
@@ -27,6 +29,7 @@ class HomeScreen extends StatelessWidget {
           children: [
             CalendarView(),
             FeedView(),
+            GalleryView(),
           ],
         ),
       ),
