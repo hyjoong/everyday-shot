@@ -1,4 +1,4 @@
-package com.example.everyday_shot
+package com.hyjoong.everydayshot
 
 import io.flutter.embedding.android.FlutterActivity
 
