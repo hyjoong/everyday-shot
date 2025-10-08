@@ -29,6 +29,7 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
   bool _isSaving = false;
   List<AssetEntity> _todayPhotos = [];
   bool _loadingPhotos = false;
+  bool _isSelectingPhoto = false;
 
   @override
   void initState() {
@@ -267,37 +268,69 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
               onTap: _showImageSourceDialog,
               child: AspectRatio(
                 aspectRatio: 1,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: _selectedImage != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.file(
-                            _selectedImage!,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_photo_alternate,
-                              size: 64,
-                              color: AppColors.textTertiary,
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              '사진 선택',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 16,
+                child: Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceVariant,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: _selectedImage != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.file(
+                                _selectedImage!,
+                                fit: BoxFit.cover,
                               ),
+                            )
+                          : const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_photo_alternate,
+                                  size: 64,
+                                  color: AppColors.textTertiary,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  '사진 선택',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                    ),
+                    // 로딩 오버레이
+                    if (_isSelectingPhoto)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(
+                                color: AppColors.accent,
+                                strokeWidth: 3,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                '사진 불러오는 중...',
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -335,32 +368,48 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
                     final asset = _todayPhotos[index];
                     return GestureDetector(
                       onTap: () async {
-                        // 사진 선택
-                        final file = await asset.file;
-                        if (file != null) {
-                          final savedPath = await _imageService.saveImage(file);
-                          final imageFile = File(savedPath);
+                        // 로딩 시작
+                        setState(() {
+                          _isSelectingPhoto = true;
+                        });
 
-                          // EXIF 날짜 추출
-                          final exifDate = await _imageService.getImageDateTime(imageFile);
+                        try {
+                          // 사진 선택
+                          final file = await asset.file;
+                          if (file != null) {
+                            final savedPath = await _imageService.saveImage(file);
+                            final imageFile = File(savedPath);
 
-                          setState(() {
-                            _selectedImage = imageFile;
-                            if (exifDate != null) {
-                              _selectedDate = exifDate;
+                            // EXIF 날짜 추출
+                            final exifDate = await _imageService.getImageDateTime(imageFile);
+
+                            if (mounted) {
+                              setState(() {
+                                _selectedImage = imageFile;
+                                if (exifDate != null) {
+                                  _selectedDate = exifDate;
+                                }
+                              });
+
+                              if (exifDate != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '촬영 날짜로 자동 설정: ${exifDate.year}.${exifDate.month.toString().padLeft(2, '0')}.${exifDate.day.toString().padLeft(2, '0')}',
+                                    ),
+                                    backgroundColor: AppColors.accent,
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
                             }
-                          });
-
-                          if (mounted && exifDate != null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  '촬영 날짜로 자동 설정: ${exifDate.year}.${exifDate.month.toString().padLeft(2, '0')}.${exifDate.day.toString().padLeft(2, '0')}',
-                                ),
-                                backgroundColor: AppColors.accent,
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
+                          }
+                        } finally {
+                          // 로딩 종료
+                          if (mounted) {
+                            setState(() {
+                              _isSelectingPhoto = false;
+                            });
                           }
                         }
                       },
