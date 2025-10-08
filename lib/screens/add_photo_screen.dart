@@ -91,35 +91,49 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
 
   /// 이미지 선택 (갤러리 or 카메라)
   Future<void> _pickImage(ImageSource source) async {
-    final String? imagePath = await _imageService.pickAndSaveImage(
-      source: source,
-    );
+    // 로딩 시작
+    setState(() {
+      _isSelectingPhoto = true;
+    });
 
-    if (imagePath != null) {
-      final imageFile = File(imagePath);
+    try {
+      final String? imagePath = await _imageService.pickAndSaveImage(
+        source: source,
+      );
 
-      // EXIF에서 촬영 날짜 추출 시도
-      final DateTime? exifDate = await _imageService.getImageDateTime(imageFile);
+      if (imagePath != null && mounted) {
+        final imageFile = File(imagePath);
 
-      setState(() {
-        _selectedImage = imageFile;
-        // EXIF 날짜가 있으면 자동 설정
+        // EXIF에서 촬영 날짜 추출 시도
+        final DateTime? exifDate = await _imageService.getImageDateTime(imageFile);
+
+        setState(() {
+          _selectedImage = imageFile;
+          // EXIF 날짜가 있으면 자동 설정
+          if (exifDate != null) {
+            _selectedDate = exifDate;
+          }
+        });
+
+        // EXIF 날짜를 찾았다면 사용자에게 알림
         if (exifDate != null) {
-          _selectedDate = exifDate;
-        }
-      });
-
-      // EXIF 날짜를 찾았다면 사용자에게 알림
-      if (exifDate != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '촬영 날짜로 자동 설정: ${exifDate.year}.${exifDate.month.toString().padLeft(2, '0')}.${exifDate.day.toString().padLeft(2, '0')}',
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '촬영 날짜로 자동 설정: ${exifDate.year}.${exifDate.month.toString().padLeft(2, '0')}.${exifDate.day.toString().padLeft(2, '0')}',
+              ),
+              backgroundColor: AppColors.accent,
+              duration: const Duration(seconds: 2),
             ),
-            backgroundColor: AppColors.accent,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+          );
+        }
+      }
+    } finally {
+      // 로딩 종료
+      if (mounted) {
+        setState(() {
+          _isSelectingPhoto = false;
+        });
       }
     }
   }
@@ -265,65 +279,85 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
           children: [
             // 사진 영역
             GestureDetector(
-              onTap: _showImageSourceDialog,
-              child: AspectRatio(
-                aspectRatio: 1,
+              onTap: _isSelectingPhoto ? null : _showImageSourceDialog,
+              child: Container(
+                width: double.infinity,
+                height: MediaQuery.of(context).size.width - 32, // 가로 꽉 차게
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Stack(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceVariant,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                    // 선택된 이미지 또는 플레이스홀더
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
                       child: _selectedImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
+                          ? SizedBox.expand(
                               child: Image.file(
                                 _selectedImage!,
                                 fit: BoxFit.cover,
                               ),
                             )
-                          : const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add_photo_alternate,
-                                  size: 64,
-                                  color: AppColors.textTertiary,
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  '사진 선택',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 16,
+                          : const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_photo_alternate,
+                                    size: 64,
+                                    color: AppColors.textTertiary,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(height: 12),
+                                  Text(
+                                    '사진 선택',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                     ),
                     // 로딩 오버레이
                     if (_isSelectingPhoto)
-                      Positioned.fill(
+                      Center(
                         child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 24,
+                          ),
                           decoration: BoxDecoration(
-                            color: Colors.black54,
+                            color: AppColors.surface,
                             borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              CircularProgressIndicator(
-                                color: AppColors.accent,
-                                strokeWidth: 3,
+                              SizedBox(
+                                width: 40,
+                                height: 40,
+                                child: CircularProgressIndicator(
+                                  color: AppColors.accent,
+                                  strokeWidth: 4,
+                                ),
                               ),
                               SizedBox(height: 16),
                               Text(
                                 '사진 불러오는 중...',
                                 style: TextStyle(
                                   color: AppColors.textPrimary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -360,14 +394,14 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
               ),
               const SizedBox(height: 12),
               SizedBox(
-                height: 100,
+                height: 120,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: _todayPhotos.length,
                   itemBuilder: (context, index) {
                     final asset = _todayPhotos[index];
                     return GestureDetector(
-                      onTap: () async {
+                      onTap: _isSelectingPhoto ? null : () async {
                         // 로딩 시작
                         setState(() {
                           _isSelectingPhoto = true;
@@ -414,18 +448,22 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
                         }
                       },
                       child: Container(
-                        width: 100,
-                        height: 100,
-                        margin: const EdgeInsets.only(right: 8),
+                        width: 120,
+                        height: 120,
+                        margin: const EdgeInsets.only(right: 12),
                         decoration: BoxDecoration(
                           color: AppColors.surfaceVariant,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.border,
+                            width: 1,
+                          ),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                           child: FutureBuilder<Uint8List?>(
                             future: asset.thumbnailDataWithSize(
-                              const ThumbnailSize.square(200),
+                              const ThumbnailSize.square(240),
                             ),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.done &&
@@ -438,9 +476,13 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
                               return Container(
                                 color: AppColors.surfaceVariant,
                                 child: const Center(
-                                  child: CircularProgressIndicator(
-                                    color: AppColors.accent,
-                                    strokeWidth: 2,
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.accent,
+                                      strokeWidth: 2,
+                                    ),
                                   ),
                                 ),
                               );
