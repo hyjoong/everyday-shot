@@ -5,6 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:everyday_shot/constants/app_theme.dart';
 import 'package:everyday_shot/screens/home_screen.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
+import 'package:everyday_shot/features/auth/providers/auth_provider.dart';
+import 'package:everyday_shot/features/auth/screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +19,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => PhotoProvider()..loadPhotos(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()..initUser()),
+        ChangeNotifierProvider(create: (_) => PhotoProvider()..loadPhotos()),
+      ],
       child: MaterialApp(
         title: '매일한컷',
         theme: AppTheme.darkTheme,
@@ -32,8 +37,26 @@ class MyApp extends StatelessWidget {
         supportedLocales: const [
           Locale('ko', 'KR'),
         ],
-        home: const HomeScreen(),
+        home: const AuthWrapper(),
       ),
+    );
+  }
+}
+
+// 인증 상태에 따라 화면 라우팅
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        // 로그인 상태면 HomeScreen, 아니면 LoginScreen
+        if (authProvider.isAuthenticated) {
+          return const HomeScreen();
+        }
+        return const LoginScreen();
+      },
     );
   }
 }
