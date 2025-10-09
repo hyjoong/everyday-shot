@@ -44,13 +44,42 @@ class MyApp extends StatelessWidget {
 }
 
 // 인증 상태에 따라 화면 라우팅
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
   @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool _hasInitialized = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
+    return Consumer2<AuthProvider, PhotoProvider>(
+      builder: (context, authProvider, photoProvider, _) {
+        // 인증 상태 변경 시 PhotoProvider와 동기화
+        if (authProvider.isAuthenticated && !_hasInitialized) {
+          _hasInitialized = true;
+          // 로그인 성공 시 동기화
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final userId = authProvider.user?.uid;
+            if (userId != null) {
+              photoProvider.setUserId(userId);
+              photoProvider.syncWithCloud(userId).catchError((e) {
+                // 동기화 실패 시 에러 처리 (선택사항)
+                debugPrint('동기화 실패: $e');
+              });
+            }
+          });
+        } else if (!authProvider.isAuthenticated && _hasInitialized) {
+          _hasInitialized = false;
+          // 로그아웃 시 userId 초기화
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            photoProvider.setUserId(null);
+          });
+        }
+
         // 로그인 상태면 HomeScreen, 아니면 LoginScreen
         if (authProvider.isAuthenticated) {
           return const HomeScreen();

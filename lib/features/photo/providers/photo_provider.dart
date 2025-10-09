@@ -1,19 +1,31 @@
 import 'package:flutter/foundation.dart';
 import 'package:everyday_shot/models/photo.dart';
 import 'package:everyday_shot/features/photo/services/database_service.dart';
+import 'package:everyday_shot/features/photo/services/sync_service.dart';
 
 /// 사진 상태 관리 Provider
 class PhotoProvider extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
+  final SyncService _syncService = SyncService();
 
   List<Photo> _photos = [];
   bool _isLoading = false;
+  bool _isSyncing = false;
+  String? _currentUserId;
 
   /// 모든 사진 목록
   List<Photo> get photos => _photos;
 
   /// 로딩 상태
   bool get isLoading => _isLoading;
+
+  /// 동기화 상태
+  bool get isSyncing => _isSyncing;
+
+  /// 현재 사용자 ID 설정 (로그인 시 호출)
+  void setUserId(String? userId) {
+    _currentUserId = userId;
+  }
 
   /// 초기화 및 모든 사진 로드
   Future<void> loadPhotos() async {
@@ -26,6 +38,25 @@ class PhotoProvider extends ChangeNotifier {
       debugPrint('사진 로드 실패: $e');
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// 클라우드와 동기화 (로그인 시 호출)
+  Future<void> syncWithCloud(String userId) async {
+    _isSyncing = true;
+    notifyListeners();
+
+    try {
+      _currentUserId = userId;
+      await _syncService.syncAll(userId);
+      // 동기화 후 로컬 데이터 다시 로드
+      await loadPhotos();
+    } catch (e) {
+      debugPrint('클라우드 동기화 실패: $e');
+      rethrow;
+    } finally {
+      _isSyncing = false;
       notifyListeners();
     }
   }
@@ -51,7 +82,11 @@ class PhotoProvider extends ChangeNotifier {
   /// 사진 추가
   Future<void> addPhoto(Photo photo) async {
     try {
-      await _databaseService.savePhoto(photo);
+      // 동기화 서비스 사용 (로그인 상태면 클라우드에도 저장)
+      await _syncService.addPhotoWithSync(
+        userId: _currentUserId,
+        photo: photo,
+      );
       _photos.insert(0, photo); // 최신순으로 맨 앞에 추가
       notifyListeners();
     } catch (e) {
@@ -63,7 +98,11 @@ class PhotoProvider extends ChangeNotifier {
   /// 사진 업데이트
   Future<void> updatePhoto(Photo photo) async {
     try {
-      await _databaseService.updatePhoto(photo);
+      // 동기화 서비스 사용 (로그인 상태면 클라우드에도 업데이트)
+      await _syncService.updatePhotoWithSync(
+        userId: _currentUserId,
+        photo: photo,
+      );
 
       final index = _photos.indexWhere((p) => p.id == photo.id);
       if (index != -1) {
@@ -79,7 +118,11 @@ class PhotoProvider extends ChangeNotifier {
   /// 사진 삭제
   Future<void> deletePhoto(String id) async {
     try {
-      await _databaseService.deletePhoto(id);
+      // 동기화 서비스 사용 (로그인 상태면 클라우드에서도 삭제)
+      await _syncService.deletePhotoWithSync(
+        userId: _currentUserId,
+        photoId: id,
+      );
       _photos.removeWhere((photo) => photo.id == id);
       notifyListeners();
     } catch (e) {
