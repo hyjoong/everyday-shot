@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
+import 'package:everyday_shot/widgets/cached_photo_image.dart';
 
 class CalendarView extends StatefulWidget {
   final Function(DateTime)? onDateSelected;
@@ -48,23 +48,11 @@ class _CalendarViewState extends State<CalendarView> {
           // 사진 썸네일
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: Image.file(
-              File(photo.imagePath),
+            child: CachedPhotoImage(
+              imagePath: photo.imagePath,
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: AppColors.surfaceVariant,
-                  child: const Center(
-                    child: Icon(
-                      Icons.broken_image,
-                      size: 16,
-                      color: AppColors.textTertiary,
-                    ),
-                  ),
-                );
-              },
             ),
           ),
           // 날짜 텍스트 (오버레이)

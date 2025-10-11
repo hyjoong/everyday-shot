@@ -35,8 +35,8 @@ class SyncService {
     }
   }
 
-  /// 클라우드 메타데이터를 로컬로 다운로드 (이미지는 제외)
-  /// 참고: 이미지 파일은 각 기기에만 저장되므로, 다른 기기에서는 메타데이터만 동기화됨
+  /// 클라우드 메타데이터를 로컬로 다운로드
+  /// Firebase Storage URL을 imagePath로 저장하여 네트워크에서 이미지 로드
   Future<void> downloadCloudPhotosToLocal(String userId) async {
     try {
       // 클라우드의 모든 사진 메타데이터 가져오기
@@ -46,13 +46,11 @@ class SyncService {
       final localPhotos = await _databaseService.getAllPhotos();
       final localPhotoIds = localPhotos.map((p) => p.id).toSet();
 
-      // 로컬에 없는 클라우드 메타데이터 처리 (이미지 없음 - 건너뜀)
-      // 참고: 실제 이미지 파일은 각 기기의 로컬에만 저장되므로
-      // 다른 기기에서는 메타데이터만 있고 이미지는 없음
+      // 클라우드에만 있는 사진을 로컬에 추가 (Storage URL 포함)
       for (var cloudPhoto in cloudPhotos) {
         if (!localPhotoIds.contains(cloudPhoto.id)) {
-          // 이미지 파일 없이 메타데이터만 있는 항목은 로컬에 저장하지 않음
-          // 필요시 placeholder 이미지로 저장 가능
+          // Storage URL을 imagePath로 저장 (네트워크 이미지로 표시)
+          await _databaseService.savePhoto(cloudPhoto);
         }
       }
     } catch (e) {

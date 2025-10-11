@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
+import 'package:everyday_shot/widgets/cached_photo_image.dart';
 
 class GalleryView extends StatelessWidget {
   const GalleryView({super.key});
@@ -44,21 +44,9 @@ class GalleryView extends StatelessWidget {
           itemCount: photos.length,
           itemBuilder: (context, index) {
             final photo = photos[index];
-            return Image.file(
-              File(photo.imagePath),
+            return CachedPhotoImage(
+              imagePath: photo.imagePath,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: AppColors.surfaceVariant,
-                  child: const Center(
-                    child: Icon(
-                      Icons.broken_image,
-                      size: 32,
-                      color: AppColors.textTertiary,
-                    ),
-                  ),
-                );
-              },
             );
           },
         );
