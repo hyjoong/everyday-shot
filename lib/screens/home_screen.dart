@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/screens/calendar_view.dart';
 import 'package:everyday_shot/screens/feed_view.dart';
 import 'package:everyday_shot/screens/gallery_view.dart';
 import 'package:everyday_shot/screens/add_photo_screen.dart';
+import 'package:everyday_shot/features/auth/providers/auth_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,6 +31,52 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('매일한컷'),
+          actions: [
+            Consumer<AuthProvider>(
+              builder: (context, authProvider, _) {
+                if (authProvider.isAuthenticated) {
+                  return IconButton(
+                    icon: const Icon(Icons.logout),
+                    tooltip: '로그아웃',
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: AppColors.surface,
+                          title: const Text(
+                            '로그아웃',
+                            style: TextStyle(color: AppColors.textPrimary),
+                          ),
+                          content: const Text(
+                            '로그아웃하시겠습니까?',
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('취소'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text(
+                                '로그아웃',
+                                style: TextStyle(color: AppColors.error),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        await authProvider.signOut();
+                      }
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
           bottom: const TabBar(
             indicatorColor: AppColors.accent,
             labelColor: AppColors.textPrimary,

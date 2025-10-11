@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
+import 'package:everyday_shot/widgets/cached_photo_image.dart';
 
 class FeedView extends StatelessWidget {
   const FeedView({super.key});
@@ -49,21 +49,9 @@ class FeedView extends StatelessWidget {
                     aspectRatio: 1,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        File(photo.imagePath),
+                      child: CachedPhotoImage(
+                        imagePath: photo.imagePath,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: AppColors.surfaceVariant,
-                            child: const Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                size: 48,
-                                color: AppColors.textTertiary,
-                              ),
-                            ),
-                          );
-                        },
                       ),
                     ),
                   ),
