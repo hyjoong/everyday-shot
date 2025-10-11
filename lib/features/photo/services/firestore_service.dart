@@ -4,8 +4,9 @@ import 'package:everyday_shot/models/photo.dart';
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // 컬렉션 참조
-  CollectionReference get _photosCollection => _firestore.collection('photos');
+  // 컬렉션 참조 (사용자별 서브컬렉션)
+  CollectionReference _photosCollection(String userId) =>
+      _firestore.collection('users').doc(userId).collection('photos');
   CollectionReference get _usersCollection => _firestore.collection('users');
 
   /// 사용자 프로필 생성 또는 업데이트
@@ -31,8 +32,7 @@ class FirestoreService {
     required Photo photo,
   }) async {
     try {
-      await _photosCollection.doc(photo.id).set({
-        'userId': userId,
+      await _photosCollection(userId).doc(photo.id).set({
         'date': photo.date.toIso8601String().split('T')[0],
         'imageUrl': photo.imagePath, // Firebase Storage URL로 저장
         'memo': photo.memo,
@@ -50,15 +50,12 @@ class FirestoreService {
     required Photo photo,
   }) async {
     try {
-      final docRef = _photosCollection.doc(photo.id);
+      final docRef = _photosCollection(userId).doc(photo.id);
       final doc = await docRef.get();
 
-      // 해당 사진이 존재하고 본인 소유인지 확인
+      // 해당 사진이 존재하는지 확인
       if (!doc.exists) {
         throw '사진을 찾을 수 없습니다';
-      }
-      if (doc.get('userId') != userId) {
-        throw '권한이 없습니다';
       }
 
       await docRef.update({
@@ -78,15 +75,12 @@ class FirestoreService {
     required String photoId,
   }) async {
     try {
-      final docRef = _photosCollection.doc(photoId);
+      final docRef = _photosCollection(userId).doc(photoId);
       final doc = await docRef.get();
 
-      // 해당 사진이 존재하고 본인 소유인지 확인
+      // 해당 사진이 존재하는지 확인
       if (!doc.exists) {
         throw '사진을 찾을 수 없습니다';
-      }
-      if (doc.get('userId') != userId) {
-        throw '권한이 없습니다';
       }
 
       await docRef.delete();
@@ -98,8 +92,7 @@ class FirestoreService {
   /// 특정 사용자의 모든 사진 가져오기
   Future<List<Photo>> getUserPhotos(String userId) async {
     try {
-      final querySnapshot = await _photosCollection
-          .where('userId', isEqualTo: userId)
+      final querySnapshot = await _photosCollection(userId)
           .orderBy('date', descending: true)
           .get();
 
@@ -126,8 +119,7 @@ class FirestoreService {
   }) async {
     try {
       final dateStr = date.toIso8601String().split('T')[0];
-      final querySnapshot = await _photosCollection
-          .where('userId', isEqualTo: userId)
+      final querySnapshot = await _photosCollection(userId)
           .where('date', isEqualTo: dateStr)
           .limit(1)
           .get();
@@ -153,8 +145,7 @@ class FirestoreService {
 
   /// 사용자의 사진을 실시간으로 스트리밍
   Stream<List<Photo>> streamUserPhotos(String userId) {
-    return _photosCollection
-        .where('userId', isEqualTo: userId)
+    return _photosCollection(userId)
         .orderBy('date', descending: true)
         .snapshots()
         .map((snapshot) {
@@ -176,9 +167,7 @@ class FirestoreService {
   Future<void> deleteAllUserData(String userId) async {
     try {
       // 사용자의 모든 사진 삭제
-      final photosSnapshot = await _photosCollection
-          .where('userId', isEqualTo: userId)
-          .get();
+      final photosSnapshot = await _photosCollection(userId).get();
 
       final batch = _firestore.batch();
       for (var doc in photosSnapshot.docs) {

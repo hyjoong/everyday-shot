@@ -34,8 +34,6 @@ class PhotoProvider extends ChangeNotifier {
 
     try {
       _photos = await _databaseService.getAllPhotos();
-    } catch (e) {
-      debugPrint('사진 로드 실패: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -50,11 +48,7 @@ class PhotoProvider extends ChangeNotifier {
     try {
       _currentUserId = userId;
       await _syncService.syncAll(userId);
-      // 동기화 후 로컬 데이터 다시 로드
       await loadPhotos();
-    } catch (e) {
-      debugPrint('Firestore 동기화 실패: $e');
-      rethrow;
     } finally {
       _isSyncing = false;
       notifyListeners();
@@ -81,37 +75,25 @@ class PhotoProvider extends ChangeNotifier {
 
   /// 사진 추가
   Future<void> addPhoto(Photo photo) async {
-    try {
-      // SyncService 사용 (로그인 상태면 Firestore 메타데이터도 저장)
-      await _syncService.addPhotoWithSync(
-        userId: _currentUserId,
-        photo: photo,
-      );
-      _photos.insert(0, photo); // 최신순으로 맨 앞에 추가
-      notifyListeners();
-    } catch (e) {
-      debugPrint('사진 추가 실패: $e');
-      rethrow;
-    }
+    await _syncService.addPhotoWithSync(
+      userId: _currentUserId,
+      photo: photo,
+    );
+    _photos.insert(0, photo);
+    notifyListeners();
   }
 
   /// 사진 업데이트
   Future<void> updatePhoto(Photo photo) async {
-    try {
-      // SyncService 사용 (로그인 상태면 Firestore 메타데이터도 업데이트)
-      await _syncService.updatePhotoWithSync(
-        userId: _currentUserId,
-        photo: photo,
-      );
+    await _syncService.updatePhotoWithSync(
+      userId: _currentUserId,
+      photo: photo,
+    );
 
-      final index = _photos.indexWhere((p) => p.id == photo.id);
-      if (index != -1) {
-        _photos[index] = photo;
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint('사진 업데이트 실패: $e');
-      rethrow;
+    final index = _photos.indexWhere((p) => p.id == photo.id);
+    if (index != -1) {
+      _photos[index] = photo;
+      notifyListeners();
     }
   }
 
@@ -162,5 +144,18 @@ class PhotoProvider extends ChangeNotifier {
     }
 
     return datesWithPhotos;
+  }
+
+  /// 로그아웃 시 로컬 데이터 완전 삭제
+  Future<void> clearLocalData() async {
+    try {
+      await _syncService.clearLocalData();
+      _photos = [];
+      notifyListeners();
+      debugPrint('✅ 로컬 데이터 삭제 완료');
+    } catch (e) {
+      debugPrint('❌ 로컬 데이터 삭제 실패: $e');
+      rethrow;
+    }
   }
 }

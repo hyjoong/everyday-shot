@@ -68,19 +68,15 @@ class _AuthWrapperState extends State<AuthWrapper> {
             final userId = authProvider.user?.uid;
             if (userId != null) {
               photoProvider.setUserId(userId);
-              debugPrint('✅ 로그인 완료 (userId: $userId)');
-              try {
-                await photoProvider.syncWithCloud(userId);
-                debugPrint('✅ 클라우드 동기화 완료');
-              } catch (e) {
-                debugPrint('❌ 클라우드 동기화 실패: $e');
-              }
+              await photoProvider.syncWithCloud(userId);
             }
           });
         } else if (!authProvider.isAuthenticated && _hasInitialized) {
           _hasInitialized = false;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
             photoProvider.setUserId(null);
+            // 로그아웃 시 로컬 DB 완전 삭제 (다른 계정 데이터가 섞이지 않도록)
+            await photoProvider.clearLocalData();
           });
         }
 
