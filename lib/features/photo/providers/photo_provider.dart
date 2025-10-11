@@ -42,7 +42,7 @@ class PhotoProvider extends ChangeNotifier {
     }
   }
 
-  /// 클라우드와 동기화 (로그인 시 호출)
+  /// Firestore 메타데이터 동기화 (로그인 시 호출)
   Future<void> syncWithCloud(String userId) async {
     _isSyncing = true;
     notifyListeners();
@@ -53,7 +53,7 @@ class PhotoProvider extends ChangeNotifier {
       // 동기화 후 로컬 데이터 다시 로드
       await loadPhotos();
     } catch (e) {
-      debugPrint('클라우드 동기화 실패: $e');
+      debugPrint('Firestore 동기화 실패: $e');
       rethrow;
     } finally {
       _isSyncing = false;
@@ -82,7 +82,7 @@ class PhotoProvider extends ChangeNotifier {
   /// 사진 추가
   Future<void> addPhoto(Photo photo) async {
     try {
-      // 동기화 서비스 사용 (로그인 상태면 클라우드에도 저장)
+      // SyncService 사용 (로그인 상태면 Firestore 메타데이터도 저장)
       await _syncService.addPhotoWithSync(
         userId: _currentUserId,
         photo: photo,
@@ -98,7 +98,7 @@ class PhotoProvider extends ChangeNotifier {
   /// 사진 업데이트
   Future<void> updatePhoto(Photo photo) async {
     try {
-      // 동기화 서비스 사용 (로그인 상태면 클라우드에도 업데이트)
+      // SyncService 사용 (로그인 상태면 Firestore 메타데이터도 업데이트)
       await _syncService.updatePhotoWithSync(
         userId: _currentUserId,
         photo: photo,
@@ -118,7 +118,7 @@ class PhotoProvider extends ChangeNotifier {
   /// 사진 삭제
   Future<void> deletePhoto(String id) async {
     try {
-      // 동기화 서비스 사용 (로그인 상태면 클라우드에서도 삭제)
+      // SyncService 사용 (로그인 상태면 Firestore에서도 삭제)
       await _syncService.deletePhotoWithSync(
         userId: _currentUserId,
         photoId: id,

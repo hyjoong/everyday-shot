@@ -1,11 +1,16 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:everyday_shot/features/photo/services/firestore_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirestoreService _firestoreService = FirestoreService();
+
+  // iOS에서는 ClientID를 명시적으로 지정 
+  late final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: Platform.isIOS
+        ? '978762588523-uci72u5bncksdk73bqmrv7d4qak6vvop.apps.googleusercontent.com'
+        : null,
+  );
 
   // 현재 사용자
   User? get currentUser => _auth.currentUser;
@@ -23,16 +28,6 @@ class AuthService {
         email: email,
         password: password,
       );
-
-      // Firestore에 사용자 프로필 생성
-      if (credential.user != null) {
-        await _firestoreService.createOrUpdateUser(
-          userId: credential.user!.uid,
-          email: email,
-          displayName: credential.user!.displayName,
-        );
-      }
-
       return credential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -76,18 +71,7 @@ class AuthService {
       );
 
       // Firebase 로그인
-      final userCredential = await _auth.signInWithCredential(credential);
-
-      // Firestore에 사용자 프로필 생성 또는 업데이트
-      if (userCredential.user != null) {
-        await _firestoreService.createOrUpdateUser(
-          userId: userCredential.user!.uid,
-          email: userCredential.user!.email ?? '',
-          displayName: userCredential.user!.displayName,
-        );
-      }
-
-      return userCredential;
+      return await _auth.signInWithCredential(credential);
     } catch (e) {
       throw '구글 로그인 실패: $e';
     }
