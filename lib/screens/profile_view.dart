@@ -125,11 +125,6 @@ class ProfileView extends StatelessWidget {
               ),
             ),
 
-            // 구분선
-            const SliverToBoxAdapter(
-              child: Divider(color: AppColors.divider, height: 1, thickness: 8),
-            ),
-
             // 갤러리 그리드
             if (photoProvider.isLoading)
               const SliverFillRemaining(
