@@ -27,13 +27,15 @@ class PhotoProvider extends ChangeNotifier {
     _currentUserId = userId;
   }
 
-  /// 초기화 및 모든 사진 로드
+  /// 초기화 및 모든 사진 로드 (최신 날짜순)
   Future<void> loadPhotos() async {
     _isLoading = true;
     notifyListeners();
 
     try {
       _photos = await _databaseService.getAllPhotos();
+      // 날짜 기준 최신순 정렬 보장
+      _photos.sort((a, b) => b.date.compareTo(a.date));
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -61,16 +63,16 @@ class PhotoProvider extends ChangeNotifier {
     final targetDate = DateTime(date.year, date.month, date.day);
 
     return _photos.cast<Photo?>().firstWhere(
-          (photo) {
-            final photoDate = DateTime(
-              photo!.date.year,
-              photo.date.month,
-              photo.date.day,
-            );
-            return photoDate.isAtSameMomentAs(targetDate);
-          },
-          orElse: () => null,
+      (photo) {
+        final photoDate = DateTime(
+          photo!.date.year,
+          photo.date.month,
+          photo.date.day,
         );
+        return photoDate.isAtSameMomentAs(targetDate);
+      },
+      orElse: () => null,
+    );
   }
 
   /// 사진 추가
@@ -79,7 +81,9 @@ class PhotoProvider extends ChangeNotifier {
       userId: _currentUserId,
       photo: photo,
     );
-    _photos.insert(0, photo);
+    _photos.add(photo);
+    // 날짜 기준 최신순 정렬
+    _photos.sort((a, b) => b.date.compareTo(a.date));
     notifyListeners();
   }
 
@@ -93,6 +97,8 @@ class PhotoProvider extends ChangeNotifier {
     final index = _photos.indexWhere((p) => p.id == photo.id);
     if (index != -1) {
       _photos[index] = photo;
+      // 날짜가 변경되었을 수 있으므로 다시 정렬
+      _photos.sort((a, b) => b.date.compareTo(a.date));
       notifyListeners();
     }
   }
