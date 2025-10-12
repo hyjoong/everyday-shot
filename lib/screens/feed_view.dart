@@ -9,14 +9,15 @@ import 'package:everyday_shot/widgets/delete_photo_dialog.dart';
 class FeedView extends StatelessWidget {
   const FeedView({super.key});
 
-  void _showPhotoOptions(BuildContext context, photo, PhotoProvider photoProvider) {
+  void _showPhotoOptions(
+      BuildContext context, photo, PhotoProvider photoProvider) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
+      builder: (bottomSheetContext) => Container(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -38,15 +39,29 @@ class FeedView extends StatelessWidget {
                 style: TextStyle(color: AppColors.error, fontSize: 16),
               ),
               onTap: () async {
-                Navigator.pop(context);
+                Navigator.pop(bottomSheetContext);
+
                 final confirm = await DeletePhotoDialog.show(context, photo);
-                if (confirm && context.mounted) {
+                if (!confirm) return;
+
+                try {
                   await photoProvider.deletePhoto(photo.id);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('사진이 삭제되었습니다'),
                         backgroundColor: AppColors.accent,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('삭제 실패: $e'),
+                        backgroundColor: AppColors.error,
+                        duration: const Duration(seconds: 3),
                       ),
                     );
                   }
@@ -129,7 +144,8 @@ class FeedView extends StatelessWidget {
                               minWidth: 36,
                               minHeight: 36,
                             ),
-                            onPressed: () => _showPhotoOptions(context, photo, photoProvider),
+                            onPressed: () => _showPhotoOptions(
+                                context, photo, photoProvider),
                           ),
                         ),
                       ),
