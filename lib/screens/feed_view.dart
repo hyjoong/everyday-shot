@@ -4,9 +4,61 @@ import 'package:intl/intl.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
 import 'package:everyday_shot/widgets/cached_photo_image.dart';
+import 'package:everyday_shot/widgets/delete_photo_dialog.dart';
 
 class FeedView extends StatelessWidget {
   const FeedView({super.key});
+
+  void _showPhotoOptions(BuildContext context, photo, PhotoProvider photoProvider) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 핸들바
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppColors.textTertiary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: AppColors.error),
+              title: const Text(
+                '삭제',
+                style: TextStyle(color: AppColors.error, fontSize: 16),
+              ),
+              onTap: () async {
+                Navigator.pop(context);
+                final confirm = await DeletePhotoDialog.show(context, photo);
+                if (confirm && context.mounted) {
+                  await photoProvider.deletePhoto(photo.id);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('사진이 삭제되었습니다'),
+                        backgroundColor: AppColors.accent,
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,16 +96,44 @@ class FeedView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 사진 영역
-                  AspectRatio(
-                    aspectRatio: 1,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedPhotoImage(
-                        imagePath: photo.imagePath,
-                        fit: BoxFit.cover,
+                  // 사진 영역 (우측 상단에 더보기 아이콘)
+                  Stack(
+                    children: [
+                      AspectRatio(
+                        aspectRatio: 1,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CachedPhotoImage(
+                            imagePath: photo.imagePath,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                    ),
+                      // 우측 상단 더보기 버튼
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.more_vert,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            onPressed: () => _showPhotoOptions(context, photo, photoProvider),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   // 날짜
