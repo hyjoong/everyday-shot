@@ -16,14 +16,14 @@
 ## 📷 앱 화면
 
 <p align="center">
-  <img width="280" src="assets/screenshots/calendar.png" alt="캘린더 뷰" />
-  <img width="280" src="assets/screenshots/upload.png" alt="업로드 뷰" />
-  <img width="280" src="assets/screenshots/feed.png" alt="피드 뷰" />
-  <img width="280" src="assets/screenshots/profile.png" alt="프로필 뷰" />
+  <img width="200" src="assets/screenshots/calendar.png" alt="캘린더 뷰" />
+  <img width="200" src="assets/screenshots/upload.png" alt="업로드 뷰" />
+  <img width="200" src="assets/screenshots/feed.png" alt="피드 뷰" />
+  <img width="200" src="assets/screenshots/profile.png" alt="프로필 뷰" />
 </p>
 
 <p align="center">
-  <em>캘린더 뷰 &nbsp;&nbsp;|&nbsp;&nbsp; 피드 뷰 &nbsp;&nbsp;|&nbsp;&nbsp; 프로필 뷰</em>
+  <em>캘린더 뷰 &nbsp;&nbsp;|&nbsp;&nbsp; 업로드 뷰 &nbsp;&nbsp;|&nbsp;&nbsp; 피드 뷰 &nbsp;&nbsp;|&nbsp;&nbsp; 프로필 뷰</em>
 </p>
 
 ---
