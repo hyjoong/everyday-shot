@@ -30,30 +30,50 @@ class LoginScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(),
+              const Spacer(flex: 2),
 
-              // 로고/타이틀
+              // 앱 아이콘
+              Center(
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    image: const DecorationImage(
+                      image: AssetImage('assets/icon/app_icon.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 타이틀
               const Text(
                 '매일한컷',
                 style: TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 48,
+                  fontSize: 40,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: -1,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+
+              // 서브타이틀
               const Text(
                 '하루에 한 장, 특별한 순간을 기록하세요',
                 style: TextStyle(
                   color: AppColors.textSecondary,
-                  fontSize: 16,
+                  fontSize: 15,
+                  height: 1.4,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 80),
+              const Spacer(flex: 3),
 
-              // Google 로그인 버튼 (공식 버튼 사용)
+              // Google 로그인 버튼
               Consumer<AuthProvider>(
                 builder: (context, authProvider, _) {
                   if (authProvider.isLoading) {
@@ -71,19 +91,8 @@ class LoginScreen extends StatelessWidget {
                   );
                 },
               ),
-              const SizedBox(height: 16),
 
-              // 안내 문구
-              const Text(
-                '로그인하면 모든 기기에서 사진을 확인할 수 있습니다',
-                style: TextStyle(
-                  color: AppColors.textTertiary,
-                  fontSize: 12,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              const Spacer(),
+              const Spacer(flex: 1),
             ],
           ),
         ),
