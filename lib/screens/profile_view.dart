@@ -17,7 +17,7 @@ class ProfileView extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
+      builder: (bottomSheetContext) => Container(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -35,14 +35,16 @@ class ProfileView extends StatelessWidget {
 
             // 설정 옵션들
             ListTile(
-              leading: const Icon(Icons.settings_outlined, color: AppColors.textSecondary),
+              leading: const Icon(Icons.settings_outlined,
+                  color: AppColors.textSecondary),
               title: const Text(
                 '설정',
                 style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
               ),
-              trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+              trailing: const Icon(Icons.chevron_right,
+                  color: AppColors.textTertiary),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(bottomSheetContext);
                 // TODO: 설정 페이지 구현
               },
             ),
@@ -53,9 +55,10 @@ class ProfileView extends StatelessWidget {
                 '로그아웃',
                 style: TextStyle(color: AppColors.error, fontSize: 16),
               ),
-              trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+              trailing: const Icon(Icons.chevron_right,
+                  color: AppColors.textTertiary),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(bottomSheetContext);
                 _handleLogout(context, authProvider);
               },
             ),
@@ -78,7 +81,8 @@ class ProfileView extends StatelessWidget {
             // 프로필 헤더
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                 child: Column(
                   children: [
                     // 프로필 이미지
@@ -108,7 +112,8 @@ class ProfileView extends StatelessWidget {
                     const SizedBox(height: 4),
 
                     // 이름 (있는 경우만)
-                    if (user?.displayName != null && user!.displayName!.isNotEmpty)
+                    if (user?.displayName != null &&
+                        user!.displayName!.isNotEmpty)
                       Text(
                         user.displayName!,
                         style: const TextStyle(
@@ -196,7 +201,8 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  static Future<void> _handleLogout(BuildContext context, AuthProvider authProvider) async {
+  static Future<void> _handleLogout(
+      BuildContext context, AuthProvider authProvider) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

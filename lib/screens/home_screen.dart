@@ -14,7 +14,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   DateTime? _selectedDate;
   late TabController _tabController;
 
@@ -50,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
+      builder: (bottomSheetContext) => Container(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -73,9 +74,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 '로그아웃',
                 style: TextStyle(color: AppColors.error, fontSize: 16),
               ),
-              trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+              trailing: const Icon(Icons.chevron_right,
+                  color: AppColors.textTertiary),
               onTap: () async {
-                Navigator.pop(context);
+                Navigator.pop(bottomSheetContext);
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
