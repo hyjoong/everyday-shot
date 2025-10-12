@@ -66,20 +66,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ),
 
-            // 설정 옵션들
-            ListTile(
-              leading: const Icon(Icons.settings_outlined, color: AppColors.textSecondary),
-              title: const Text(
-                '설정',
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
-              ),
-              trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: 설정 페이지 구현
-              },
-            ),
-            const Divider(color: AppColors.divider),
+            // 로그아웃
             ListTile(
               leading: const Icon(Icons.logout, color: AppColors.error),
               title: const Text(
