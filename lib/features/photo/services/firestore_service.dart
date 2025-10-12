@@ -55,7 +55,7 @@ class FirestoreService {
 
       // 해당 사진이 존재하는지 확인
       if (!doc.exists) {
-        throw '사진을 찾을 수 없습니다';
+        return;
       }
 
       await docRef.update({
@@ -65,7 +65,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      throw '사진 업데이트 실패: $e';
+      print('⚠️ 사진 업데이트 오류: $e');
     }
   }
 
@@ -80,18 +80,27 @@ class FirestoreService {
 
       // 해당 사진이 존재하는지 확인
       if (!doc.exists) {
-        throw '사진을 찾을 수 없습니다';
+        print('⚠️ 삭제할 사진이 Firestore에 없습니다. 무시합니다.');
+        return;
       }
 
       await docRef.delete();
     } catch (e) {
-      throw '사진 삭제 실패: $e';
+      print('⚠️ 사진 삭제 오류: $e');
+      // 에러를 throw하지 않고 로그만 남김
     }
   }
 
   /// 특정 사용자의 모든 사진 가져오기
   Future<List<Photo>> getUserPhotos(String userId) async {
     try {
+      // 사용자 문서가 존재하는지 확인
+      final userDoc = await _usersCollection.doc(userId).get();
+      if (!userDoc.exists) {
+        print('ℹ️ 사용자 문서가 없습니다. 빈 목록 반환');
+        return [];
+      }
+
       final querySnapshot = await _photosCollection(userId)
           .orderBy('date', descending: true)
           .get();
@@ -103,12 +112,16 @@ class FirestoreService {
           date: DateTime.parse(data['date']),
           imagePath: data['imageUrl'] ?? '',
           memo: data['memo'],
-          createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-          updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          createdAt:
+              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          updatedAt:
+              (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
         );
       }).toList();
     } catch (e) {
-      throw '사진 목록 불러오기 실패: $e';
+      print('⚠️ 사진 목록 불러오기 오류: $e');
+      // 에러 발생 시 빈 목록 반환 (앱이 터지지 않도록)
+      return [];
     }
   }
 
@@ -135,8 +148,10 @@ class FirestoreService {
         date: DateTime.parse(data['date']),
         imagePath: data['imageUrl'] ?? '',
         memo: data['memo'],
-        createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+        createdAt:
+            (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+        updatedAt:
+            (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       );
     } catch (e) {
       throw '사진 불러오기 실패: $e';
@@ -156,8 +171,10 @@ class FirestoreService {
           date: DateTime.parse(data['date']),
           imagePath: data['imageUrl'] ?? '',
           memo: data['memo'],
-          createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-          updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          createdAt:
+              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          updatedAt:
+              (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
         );
       }).toList();
     });

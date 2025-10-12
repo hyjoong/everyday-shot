@@ -27,7 +27,8 @@ class SyncService {
         if (!cloudPhotoIds.contains(localPhoto.id)) {
           // 이미지 없이 메타데이터만 Firestore에 저장
           final metadataPhoto = localPhoto.copyWith(imagePath: ''); // 빈 문자열로 설정
-          await _firestoreService.addPhoto(userId: userId, photo: metadataPhoto);
+          await _firestoreService.addPhoto(
+              userId: userId, photo: metadataPhoto);
         }
       }
     } catch (e) {
@@ -41,16 +42,23 @@ class SyncService {
     try {
       // 클라우드의 모든 사진 메타데이터 가져오기
       final cloudPhotos = await _firestoreService.getUserPhotos(userId);
+      final cloudPhotoIds = cloudPhotos.map((p) => p.id).toSet();
 
       // 로컬의 모든 사진 가져오기
       final localPhotos = await _databaseService.getAllPhotos();
       final localPhotoIds = localPhotos.map((p) => p.id).toSet();
 
-      // 클라우드에만 있는 사진을 로컬에 추가 (Storage URL 포함)
+      // 1. 클라우드에만 있는 사진을 로컬에 추가
       for (var cloudPhoto in cloudPhotos) {
         if (!localPhotoIds.contains(cloudPhoto.id)) {
-          // Storage URL을 imagePath로 저장 (네트워크 이미지로 표시)
           await _databaseService.savePhoto(cloudPhoto);
+        }
+      }
+
+      // 2. 로컬에만 있고 클라우드에 없는 사진 삭제 (클라우드가 진실의 원천)
+      for (var localPhoto in localPhotos) {
+        if (!cloudPhotoIds.contains(localPhoto.id)) {
+          await _databaseService.deletePhoto(localPhoto.id);
         }
       }
     } catch (e) {
@@ -61,14 +69,14 @@ class SyncService {
   /// 양방향 동기화 (로그인 시 호출)
   Future<void> syncAll(String userId) async {
     try {
-      // 1. 로컬 → 클라우드 업로드
-      await uploadLocalPhotosToCloud(userId);
+      debugPrint('🔄 동기화 시작: userId=$userId');
 
-      // 2. 클라우드 → 로컬 다운로드
+      // 1. 클라우드 → 로컬 다운로드 (클라우드가 진실의 원천)
       await downloadCloudPhotosToLocal(userId);
-    } catch (e) {
-      throw '전체 동기화 실패: $e';
-    }
+
+      // 2. 로컬 → 클라우드 업로드 (로컬에만 있는 새 사진)
+      await uploadLocalPhotosToCloud(userId);
+    } catch (e) {}
   }
 
   /// 단일 사진 추가 및 동기화 (이미지 + 메타데이터)
@@ -138,7 +146,6 @@ class SyncService {
       throw '사진 삭제 실패: $e';
     }
   }
-
 
   /// 계정 삭제 시 Storage 및 Firestore 데이터 삭제
   Future<void> deleteAllData(String userId) async {
