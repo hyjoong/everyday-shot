@@ -37,15 +37,15 @@
 
 ## ✨ 주요 기능
 
-| 기능                   | 설명                                   |
-| ---------------------- | -------------------------------------- |
-| 📅 **하루 한 장**      | 오늘의 가장 의미 있는 순간을 선택      |
-| 🔐 **Google 로그인**   | 간편한 로그인으로 모든 기기에서 동기화 |
-| 📝 **메모 작성**       | 사진과 함께 짧은 메모를 남기기         |
-| 📱 **캘린더 뷰**       | 매일의 기록을 달력에서 한눈에 확인     |
-| 📰 **피드 뷰**         | 최신 사진부터 시간순으로 탐색          |
-| 👤 **프로필 갤러리**   | 그리드 형태로 모든 사진 한눈에 보기    |
-| ☁️ **클라우드 동기화** | Firebase 기반 안전한 데이터 저장       |
+| 기능                   | 설명                                |
+| ---------------------- | ----------------------------------- |
+| 📅 **하루 한 장**      | 오늘의 가장 의미 있는 순간을 선택   |
+| 🔐 **소셜 로그인**     | Google, 카카오 간편 로그인 지원     |
+| 📝 **메모 작성**       | 사진과 함께 짧은 메모를 남기기      |
+| 📱 **캘린더 뷰**       | 매일의 기록을 달력에서 한눈에 확인  |
+| 📰 **피드 뷰**         | 최신 사진부터 시간순으로 탐색       |
+| 👤 **프로필 갤러리**   | 그리드 형태로 모든 사진 한눈에 보기 |
+| ☁️ **클라우드 동기화** | Firebase 기반 안전한 데이터 저장    |
 
 ---
 
@@ -78,6 +78,47 @@ cd ios && pod install && cd ..
 flutter run
 ```
 
+### 환경 변수 설정
+
+프로젝트 루트에 `.env` 파일을 생성하고 카카오 앱 키를 설정하세요:
+
+```env
+# Kakao Login
+KAKAO_NATIVE_APP_KEY=your_kakao_native_app_key_here
+```
+
+**카카오 앱 키 발급 및 플랫폼 설정:**
+
+1. [Kakao Developers](https://developers.kakao.com)에서 애플리케이션 생성
+2. 내 애플리케이션 > 앱 키 > 네이티브 앱 키 복사
+3. 플랫폼 설정:
+   - **iOS**: Bundle ID 등록 (`com.hyjoong.everydayshot`)
+   - **Android**: 패키지명 및 키해시 등록 (아래 참조)
+
+**Android 키해시 등록 (필수!):**
+
+카카오 로그인이 Android에서 동작하려면 키해시를 등록해야 합니다:
+
+```bash
+# Release 키해시 추출 (Play Store 배포용)
+keytool -exportcert -alias everyday_shot \
+  -keystore android/app/upload-keystore.jks \
+  -storepass everyday_shot_2025 | \
+  openssl sha1 -binary | openssl base64
+
+# Debug 키해시 추출 (개발용)
+keytool -exportcert -alias androiddebugkey \
+  -keystore ~/.android/debug.keystore \
+  -storepass android | \
+  openssl sha1 -binary | openssl base64
+```
+
+추출된 키해시를 [Kakao Developers](https://developers.kakao.com) > 내 애플리케이션 > 플랫폼 > Android에 등록:
+
+- 패키지명: `com.hyjoong.everydayshot`
+- 키해시: 위 명령어로 추출한 값 (예: `5kEdFDrE0AWA5S4wRBy1Ny+8ryU=`)
+- **Debug와 Release 키해시 모두 등록** (개발/배포 모두 지원)
+
 ### Firebase 설정
 
 1. [Firebase Console](https://console.firebase.google.com)에서 프로젝트 생성
@@ -85,6 +126,14 @@ flutter run
 3. `google-services.json` (Android), `GoogleService-Info.plist` (iOS) 다운로드
 4. 각각 `android/app/`, `ios/Runner/` 디렉토리에 배치
 5. Firebase Authentication, Firestore, Storage 활성화
+
+### iOS 추가 설정
+
+Xcode에서 프로젝트를 열고:
+
+1. Runner > Build Settings > User-Defined
+2. `+` 버튼 클릭
+3. `KAKAO_APP_KEY` 추가하고 값 설정 (카카오 앱 키)
 
 </details>
 

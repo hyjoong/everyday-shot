@@ -10,4 +10,16 @@ import UIKit
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
+
+  // 카카오 URL Scheme 처리
+  override func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey : Any] = [:]
+  ) -> Bool {
+    if super.application(app, open: url, options: options) {
+      return true
+    }
+    return false
+  }
 }

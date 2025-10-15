@@ -20,6 +20,20 @@ class LoginScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _handleKakaoLogin(BuildContext context) async {
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.signInWithKakao();
+
+    if (!success && context.mounted && authProvider.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage!),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,7 +87,7 @@ class LoginScreen extends StatelessWidget {
               ),
               const Spacer(flex: 3),
 
-              // Google 로그인 버튼
+              // 소셜 로그인 버튼
               Consumer<AuthProvider>(
                 builder: (context, authProvider, _) {
                   if (authProvider.isLoading) {
@@ -82,12 +96,90 @@ class LoginScreen extends StatelessWidget {
                     );
                   }
 
-                  return GestureDetector(
-                    onTap: () => _handleGoogleLogin(context),
-                    child: Image.asset(
-                      'assets/images/google_signin_light.png',
-                      height: 46,
-                    ),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // 카카오 로그인
+                      GestureDetector(
+                        onTap: () => _handleKakaoLogin(context),
+                        child: Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEE500),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/kakao.png',
+                                width: 24,
+                                height: 24,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.chat_bubble,
+                                    color: Color(0xFF000000),
+                                    size: 24,
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                '카카오 로그인',
+                                style: TextStyle(
+                                  color: Color(0xFF000000),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Google 로그인
+                      GestureDetector(
+                        onTap: () => _handleGoogleLogin(context),
+                        child: Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFFDDDDDD),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/google.png',
+                                width: 24,
+                                height: 24,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.g_mobiledata,
+                                    color: Colors.black87,
+                                    size: 24,
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Google로 계속하기',
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),

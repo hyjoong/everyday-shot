@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // iOS에서는 ClientID를 명시적으로 지정 
+  // iOS에서는 ClientID를 명시적으로 지정
   late final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: Platform.isIOS
         ? '978762588523-uci72u5bncksdk73bqmrv7d4qak6vvop.apps.googleusercontent.com'
@@ -62,7 +63,8 @@ class AuthService {
       }
 
       // Google 인증 정보 얻기
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // Firebase 자격 증명 생성
       final credential = GoogleAuthProvider.credential(
@@ -77,8 +79,76 @@ class AuthService {
     }
   }
 
+  // 카카오 로그인
+  Future<UserCredential?> signInWithKakao() async {
+    try {
+      // 카카오톡 설치 여부 확인
+      bool isTalkInstalled = await kakao.isKakaoTalkInstalled();
+
+      kakao.OAuthToken token;
+      if (isTalkInstalled) {
+        // 카카오톡으로 로그인
+        token = await kakao.UserApi.instance.loginWithKakaoTalk();
+      } else {
+        // 카카오계정으로 로그인
+        token = await kakao.UserApi.instance.loginWithKakaoAccount();
+      }
+
+      // 카카오 사용자 정보 가져오기
+      final kakaoUser = await kakao.UserApi.instance.me();
+      final kakaoId = kakaoUser.id;
+
+      if (kakaoId == null) {
+        throw '카카오 사용자 ID를 가져올 수 없습니다';
+      }
+
+      // 카카오 ID를 기반으로 Firebase 이메일 계정 생성/로그인
+      // 형식: kakao_{카카오ID}@everydayshot.app (가상 이메일)
+      final email = 'kakao_$kakaoId@everydayshot.app';
+      final password = 'kakao_${kakaoId}_everydayshot';
+
+      UserCredential credential;
+      try {
+        // 기존 계정으로 로그인 시도
+        credential = await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'user-not-found' ||
+            e.code == 'wrong-password' ||
+            e.code == 'invalid-credential') {
+          // 계정이 없으면 새로 생성
+          credential = await _auth.createUserWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+
+          // 사용자 프로필 설정 (카카오 닉네임과 프로필 이미지)
+          await credential.user?.updateDisplayName(
+            kakaoUser.kakaoAccount?.profile?.nickname ?? '카카오 사용자',
+          );
+          await credential.user?.updatePhotoURL(
+            kakaoUser.kakaoAccount?.profile?.profileImageUrl,
+          );
+        } else {
+          throw e;
+        }
+      }
+
+      return credential;
+    } catch (e) {
+      throw '카카오 로그인 실패: $e';
+    }
+  }
+
   // 로그아웃
   Future<void> signOut() async {
+    // 카카오 로그아웃
+    try {
+      await kakao.UserApi.instance.logout();
+    } catch (_) {}
+
     await Future.wait([
       _auth.signOut(),
       _googleSignIn.signOut(),
