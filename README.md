@@ -87,11 +87,37 @@ flutter run
 KAKAO_NATIVE_APP_KEY=your_kakao_native_app_key_here
 ```
 
-**카카오 앱 키 발급:**
+**카카오 앱 키 발급 및 플랫폼 설정:**
 
 1. [Kakao Developers](https://developers.kakao.com)에서 애플리케이션 생성
 2. 내 애플리케이션 > 앱 키 > 네이티브 앱 키 복사
-3. 플랫폼 설정에서 iOS Bundle ID, Android 패키지명 등록
+3. 플랫폼 설정:
+   - **iOS**: Bundle ID 등록 (`com.hyjoong.everydayshot`)
+   - **Android**: 패키지명 및 키해시 등록 (아래 참조)
+
+**Android 키해시 등록 (필수!):**
+
+카카오 로그인이 Android에서 동작하려면 키해시를 등록해야 합니다:
+
+```bash
+# Release 키해시 추출 (Play Store 배포용)
+keytool -exportcert -alias everyday_shot \
+  -keystore android/app/upload-keystore.jks \
+  -storepass everyday_shot_2025 | \
+  openssl sha1 -binary | openssl base64
+
+# Debug 키해시 추출 (개발용)
+keytool -exportcert -alias androiddebugkey \
+  -keystore ~/.android/debug.keystore \
+  -storepass android | \
+  openssl sha1 -binary | openssl base64
+```
+
+추출된 키해시를 [Kakao Developers](https://developers.kakao.com) > 내 애플리케이션 > 플랫폼 > Android에 등록:
+
+- 패키지명: `com.hyjoong.everydayshot`
+- 키해시: 위 명령어로 추출한 값 (예: `5kEdFDrE0AWA5S4wRBy1Ny+8ryU=`)
+- **Debug와 Release 키해시 모두 등록** (개발/배포 모두 지원)
 
 ### Firebase 설정
 
