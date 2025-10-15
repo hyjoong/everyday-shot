@@ -97,6 +97,28 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // 카카오 로그인
+  Future<bool> signInWithKakao() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await _authService.signInWithKakao();
+
+      _setLoading(false);
+
+      if (result == null) {
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
   // 로그아웃
   Future<void> signOut() async {
     try {

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:everyday_shot/firebase_options.dart';
 import 'package:everyday_shot/constants/app_theme.dart';
 import 'package:everyday_shot/screens/home_screen.dart';
@@ -12,9 +14,25 @@ import 'package:everyday_shot/features/photo/services/firestore_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // .env 파일 로드
+  await dotenv.load(fileName: '.env');
+
+  // Firebase 초기화
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Kakao SDK 초기화 (hot reload 시 재초기화 방지)
+  try {
+    final kakaoAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'] ?? '';
+    if (kakaoAppKey.isNotEmpty) {
+      KakaoSdk.init(nativeAppKey: kakaoAppKey);
+    }
+  } catch (e) {
+    debugPrint('⚠️ Kakao SDK 초기화 실패 (이미 초기화됨): $e');
+  }
+
   runApp(const MyApp());
 }
 
@@ -69,12 +87,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
             final user = authProvider.user;
             if (user != null) {
               try {
-                // Firestore 사용자 문서 확인
                 final firestoreService = FirestoreService();
-                final userPhotos =
-                    await firestoreService.getUserPhotos(user.uid);
 
-                // 사용자 문서가 없으면 생성
+                // 사용자 문서 생성 또는 업데이트
                 await firestoreService.createOrUpdateUser(
                   userId: user.uid,
                   email: user.email ?? '',
@@ -85,8 +100,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
                 photoProvider.setUserId(user.uid);
                 await photoProvider.syncWithCloud(user.uid);
               } catch (e) {
-                // 동기화 실패 시 에러 무시 (로컬 데이터로 계속 사용 가능)
-                debugPrint('⚠️ 초기 동기화 실패: $e');
+                // 동기화 실패 시 로컬 데이터로 계속 사용
                 photoProvider.setUserId(user.uid);
               }
             }
