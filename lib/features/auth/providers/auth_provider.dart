@@ -18,6 +18,7 @@ class AuthProvider with ChangeNotifier {
     // 인증 상태 변화 감지
     _authService.authStateChanges.listen((User? user) {
       _user = user;
+
       notifyListeners();
     });
   }
@@ -104,6 +105,28 @@ class AuthProvider with ChangeNotifier {
       _clearError();
 
       final result = await _authService.signInWithKakao();
+
+      _setLoading(false);
+
+      if (result == null) {
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  // Apple 로그인
+  Future<bool> signInWithApple() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await _authService.signInWithApple();
 
       _setLoading(false);
 
