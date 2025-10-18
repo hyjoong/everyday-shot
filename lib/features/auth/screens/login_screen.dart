@@ -111,10 +111,14 @@ class LoginScreen extends StatelessWidget {
                     );
                   }
 
+                  final platform = Theme.of(context).platform;
+                  final isAppleDevice = platform == TargetPlatform.iOS ||
+                                       platform == TargetPlatform.macOS;
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (Theme.of(context).platform == TargetPlatform.iOS) ...[
+                      if (isAppleDevice) ...[
                         GestureDetector(
                           onTap: () => _handleAppleLogin(context),
                           child: Container(
