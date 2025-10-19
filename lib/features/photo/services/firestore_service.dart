@@ -65,7 +65,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('⚠️ 사진 업데이트 오류: $e');
+      // 업데이트 실패 시 무시
     }
   }
 
@@ -80,14 +80,12 @@ class FirestoreService {
 
       // 해당 사진이 존재하는지 확인
       if (!doc.exists) {
-        print('⚠️ 삭제할 사진이 Firestore에 없습니다. 무시합니다.');
         return;
       }
 
       await docRef.delete();
     } catch (e) {
-      print('⚠️ 사진 삭제 오류: $e');
-      // 에러를 throw하지 않고 로그만 남김
+      // 에러를 throw하지 않고 무시
     }
   }
 
@@ -97,7 +95,6 @@ class FirestoreService {
       // 사용자 문서가 존재하는지 확인
       final userDoc = await _usersCollection.doc(userId).get();
       if (!userDoc.exists) {
-        print('ℹ️ 사용자 문서가 없습니다. 빈 목록 반환');
         return [];
       }
 
@@ -119,7 +116,6 @@ class FirestoreService {
         );
       }).toList();
     } catch (e) {
-      print('⚠️ 사진 목록 불러오기 오류: $e');
       // 에러 발생 시 빈 목록 반환 (앱이 터지지 않도록)
       return [];
     }

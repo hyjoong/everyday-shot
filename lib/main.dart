@@ -30,7 +30,7 @@ void main() async {
       KakaoSdk.init(nativeAppKey: kakaoAppKey);
     }
   } catch (e) {
-    debugPrint('⚠️ Kakao SDK 초기화 실패 (이미 초기화됨): $e');
+    // 이미 초기화된 경우 무시
   }
 
   runApp(const MyApp());

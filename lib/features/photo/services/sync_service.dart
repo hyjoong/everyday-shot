@@ -69,8 +69,6 @@ class SyncService {
   /// 양방향 동기화 (로그인 시 호출)
   Future<void> syncAll(String userId) async {
     try {
-      debugPrint('🔄 동기화 시작: userId=$userId');
-
       // 1. 클라우드 → 로컬 다운로드 (클라우드가 진실의 원천)
       await downloadCloudPhotosToLocal(userId);
 
@@ -159,7 +157,6 @@ class SyncService {
           await _storageService.deletePhoto(userId: userId, photoId: photo.id);
         } catch (e) {
           // 개별 사진 삭제 실패는 무시하고 계속 진행
-          debugPrint('Storage 사진 삭제 실패 (${photo.id}): $e');
         }
       }
 

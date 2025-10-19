@@ -18,7 +18,6 @@ class ImageService {
       // 권한 요청
       final PermissionState ps = await PhotoManager.requestPermissionExtend();
       if (!ps.isAuth) {
-        debugPrint('사진 접근 권한 없음');
         return [];
       }
 
@@ -53,7 +52,6 @@ class ImageService {
 
       return photos;
     } catch (e) {
-      debugPrint('갤러리 사진 가져오기 실패: $e');
       return [];
     }
   }
@@ -96,7 +94,6 @@ class ImageService {
         int.parse(timeParts[2]), // second
       );
     } catch (e) {
-      debugPrint('EXIF 날짜 추출 실패: $e');
       return null;
     }
   }
@@ -112,7 +109,6 @@ class ImageService {
       if (image == null) return null;
       return File(image.path);
     } catch (e) {
-      debugPrint('갤러리에서 이미지 선택 실패: $e');
       return null;
     }
   }
@@ -128,7 +124,6 @@ class ImageService {
       if (image == null) return null;
       return File(image.path);
     } catch (e) {
-      debugPrint('카메라 촬영 실패: $e');
       return null;
     }
   }
@@ -156,7 +151,6 @@ class ImageService {
 
       return savedImage.path;
     } catch (e) {
-      debugPrint('이미지 저장 실패: $e');
       rethrow;
     }
   }
@@ -169,7 +163,6 @@ class ImageService {
         await imageFile.delete();
       }
     } catch (e) {
-      debugPrint('이미지 삭제 실패: $e');
       rethrow;
     }
   }
@@ -180,7 +173,6 @@ class ImageService {
       final File imageFile = File(imagePath);
       return await imageFile.exists();
     } catch (e) {
-      debugPrint('이미지 존재 확인 실패: $e');
       return false;
     }
   }
@@ -202,7 +194,6 @@ class ImageService {
       final String savedPath = await saveImage(imageFile);
       return savedPath;
     } catch (e) {
-      debugPrint('이미지 선택 및 저장 실패: $e');
       return null;
     }
   }
