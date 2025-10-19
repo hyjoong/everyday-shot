@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
@@ -23,6 +24,20 @@ class LoginScreen extends StatelessWidget {
   Future<void> _handleKakaoLogin(BuildContext context) async {
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.signInWithKakao();
+
+    if (!success && context.mounted && authProvider.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage!),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleAppleLogin(BuildContext context) async {
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.signInWithApple();
 
     if (!success && context.mounted && authProvider.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -96,9 +111,46 @@ class LoginScreen extends StatelessWidget {
                     );
                   }
 
+                  final platform = Theme.of(context).platform;
+                  final isAppleDevice = platform == TargetPlatform.iOS ||
+                                       platform == TargetPlatform.macOS;
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (isAppleDevice) ...[
+                        GestureDetector(
+                          onTap: () => _handleAppleLogin(context),
+                          child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.apple,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Apple로 계속하기',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+
                       // 카카오 로그인
                       GestureDetector(
                         onTap: () => _handleKakaoLogin(context),

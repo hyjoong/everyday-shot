@@ -114,7 +114,6 @@ class PhotoProvider extends ChangeNotifier {
       _photos.removeWhere((photo) => photo.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint('사진 삭제 실패: $e');
       rethrow;
     }
   }
@@ -127,7 +126,6 @@ class PhotoProvider extends ChangeNotifier {
     try {
       return await _databaseService.getPhotosByDateRange(start, end);
     } catch (e) {
-      debugPrint('날짜 범위 사진 조회 실패: $e');
       return [];
     }
   }
@@ -158,9 +156,7 @@ class PhotoProvider extends ChangeNotifier {
       await _syncService.clearLocalData();
       _photos = [];
       notifyListeners();
-      debugPrint('✅ 로컬 데이터 삭제 완료');
     } catch (e) {
-      debugPrint('❌ 로컬 데이터 삭제 실패: $e');
       rethrow;
     }
   }
