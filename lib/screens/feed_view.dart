@@ -5,6 +5,8 @@ import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
 import 'package:everyday_shot/widgets/cached_photo_image.dart';
 import 'package:everyday_shot/widgets/delete_photo_dialog.dart';
+import 'package:everyday_shot/screens/photo_detail_screen.dart';
+import 'package:everyday_shot/screens/edit_photo_screen.dart';
 
 class FeedView extends StatelessWidget {
   const FeedView({super.key});
@@ -32,6 +34,25 @@ class FeedView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
+            ListTile(
+              leading:
+                  const Icon(Icons.edit_outlined, color: AppColors.textPrimary),
+              title: const Text(
+                '수정',
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
+              ),
+              onTap: () async {
+                Navigator.pop(bottomSheetContext);
+
+                await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditPhotoScreen(photo: photo),
+                  ),
+                );
+              },
+            ),
+            const Divider(color: AppColors.divider),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: AppColors.error),
               title: const Text(
@@ -90,13 +111,34 @@ class FeedView extends StatelessWidget {
         }
 
         if (photos.isEmpty) {
-          return const Center(
-            child: Text(
-              '아직 사진이 없습니다',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 16,
-              ),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.photo_camera_outlined,
+                  size: 80,
+                  color: AppColors.textTertiary.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  '아직 사진이 없습니다',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '+ 버튼을 눌러 첫 사진을 추가해보세요',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           );
         }
@@ -114,13 +156,29 @@ class FeedView extends StatelessWidget {
                   // 사진 영역 (우측 상단에 더보기 아이콘)
                   Stack(
                     children: [
-                      AspectRatio(
-                        aspectRatio: 1,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: CachedPhotoImage(
-                            imagePath: photo.imagePath,
-                            fit: BoxFit.cover,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PhotoDetailScreen(
+                                initialPhoto: photo,
+                                allPhotos: photos,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Hero(
+                          tag: 'photo_${photo.id}',
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: CachedPhotoImage(
+                                imagePath: photo.imagePath,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -130,7 +188,7 @@ class FeedView extends StatelessWidget {
                         right: 8,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black.withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
