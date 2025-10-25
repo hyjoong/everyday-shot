@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
 import 'package:everyday_shot/widgets/cached_photo_image.dart';
+import 'package:everyday_shot/screens/photo_detail_screen.dart';
 
 class CalendarView extends StatefulWidget {
   final Function(DateTime)? onDateSelected;
@@ -26,7 +27,8 @@ class _CalendarViewState extends State<CalendarView> {
   }
 
   /// 커스텀 셀 빌더 (사진 썸네일 표시)
-  Widget? _cellBuilder(BuildContext context, DateTime day, DateTime focusedDay) {
+  Widget? _cellBuilder(
+      BuildContext context, DateTime day, DateTime focusedDay) {
     final photoProvider = context.read<PhotoProvider>();
     final photo = photoProvider.getPhotoByDate(day);
 
@@ -35,71 +37,87 @@ class _CalendarViewState extends State<CalendarView> {
     final isToday = isSameDay(day, DateTime.now());
     final isSelected = isSameDay(day, _selectedDay);
 
-    return Container(
-      margin: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: isToday
-            ? Border.all(color: AppColors.accentLight, width: 2)
-            : null,
-      ),
-      child: Stack(
-        children: [
-          // 사진 썸네일
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: CachedPhotoImage(
-              imagePath: photo.imagePath,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PhotoDetailScreen(
+              initialPhoto: photo,
+              allPhotos: photoProvider.photos,
             ),
           ),
-          // 날짜 텍스트 (오버레이)
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.5),
-                  Colors.transparent,
-                ],
-              ),
-            ),
+        );
+      },
+      child: Hero(
+        tag: 'photo_${photo.id}',
+        child: Container(
+          margin: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: isToday
+                ? Border.all(color: AppColors.accentLight, width: 2)
+                : null,
           ),
-          // 날짜 숫자
-          Positioned(
-            top: 2,
-            right: 4,
-            child: Text(
-              '${day.day}',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                shadows: const [
-                  Shadow(
-                    color: Colors.black,
-                    blurRadius: 2,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // 선택 표시
-          if (isSelected)
-            Container(
-              decoration: BoxDecoration(
+          child: Stack(
+            children: [
+              // 사진 썸네일
+              ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppColors.accent,
-                  width: 2,
+                child: CachedPhotoImage(
+                  imagePath: photo.imagePath,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
                 ),
               ),
-            ),
-        ],
+              // 날짜 텍스트 (오버레이)
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.5),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+              // 날짜 숫자
+              Positioned(
+                top: 2,
+                right: 4,
+                child: Text(
+                  '${day.day}',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    shadows: const [
+                      Shadow(
+                        color: Colors.black,
+                        blurRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // 선택 표시
+              if (isSelected)
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: AppColors.accent,
+                      width: 2,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -132,7 +150,7 @@ class _CalendarViewState extends State<CalendarView> {
 
                 // 오늘 날짜
                 todayDecoration: BoxDecoration(
-                  color: AppColors.accentLight.withOpacity(0.3),
+                  color: AppColors.accentLight.withValues(alpha: 0.3),
                   shape: BoxShape.circle,
                 ),
                 todayTextStyle: const TextStyle(
@@ -169,36 +187,36 @@ class _CalendarViewState extends State<CalendarView> {
                 markersMaxCount: 0,
               ),
 
-          // 헤더 스타일
-          headerStyle: const HeaderStyle(
-            formatButtonVisible: false,
-            titleCentered: true,
-            titleTextStyle: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-            leftChevronIcon: Icon(
-              Icons.chevron_left,
-              color: AppColors.textPrimary,
-            ),
-            rightChevronIcon: Icon(
-              Icons.chevron_right,
-              color: AppColors.textPrimary,
-            ),
-          ),
+              // 헤더 스타일
+              headerStyle: const HeaderStyle(
+                formatButtonVisible: false,
+                titleCentered: true,
+                titleTextStyle: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                leftChevronIcon: Icon(
+                  Icons.chevron_left,
+                  color: AppColors.textPrimary,
+                ),
+                rightChevronIcon: Icon(
+                  Icons.chevron_right,
+                  color: AppColors.textPrimary,
+                ),
+              ),
 
-          // 요일 스타일
-          daysOfWeekStyle: const DaysOfWeekStyle(
-            weekdayStyle: TextStyle(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-            weekendStyle: TextStyle(
-              color: AppColors.textTertiary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+              // 요일 스타일
+              daysOfWeekStyle: const DaysOfWeekStyle(
+                weekdayStyle: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+                weekendStyle: TextStyle(
+                  color: AppColors.textTertiary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
 
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
