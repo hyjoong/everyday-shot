@@ -86,6 +86,8 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
       setState(() {
         _selectedDate = picked;
       });
+      // 날짜가 변경되면 해당 날짜의 사진 목록 다시 로드
+      await _loadTodayPhotos();
     }
   }
 
@@ -105,7 +107,8 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
         final imageFile = File(imagePath);
 
         // EXIF에서 촬영 날짜 추출 시도
-        final DateTime? exifDate = await _imageService.getImageDateTime(imageFile);
+        final DateTime? exifDate =
+            await _imageService.getImageDateTime(imageFile);
 
         setState(() {
           _selectedImage = imageFile;
@@ -154,7 +157,8 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: const Icon(Icons.photo_library, color: AppColors.textPrimary),
+                  leading: const Icon(Icons.photo_library,
+                      color: AppColors.textPrimary),
                   title: const Text(
                     '갤러리에서 선택',
                     style: TextStyle(color: AppColors.textPrimary),
@@ -165,7 +169,8 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.camera_alt, color: AppColors.textPrimary),
+                  leading: const Icon(Icons.camera_alt,
+                      color: AppColors.textPrimary),
                   title: const Text(
                     '카메라로 촬영',
                     style: TextStyle(color: AppColors.textPrimary),
@@ -204,7 +209,9 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
         id: _uuid.v4(),
         date: _selectedDate,
         imagePath: _selectedImage!.path,
-        memo: _memoController.text.trim().isEmpty ? null : _memoController.text.trim(),
+        memo: _memoController.text.trim().isEmpty
+            ? null
+            : _memoController.text.trim(),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -334,7 +341,7 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
+                                color: Colors.black.withValues(alpha: 0.3),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -401,52 +408,57 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
                   itemBuilder: (context, index) {
                     final asset = _todayPhotos[index];
                     return GestureDetector(
-                      onTap: _isSelectingPhoto ? null : () async {
-                        // 로딩 시작
-                        setState(() {
-                          _isSelectingPhoto = true;
-                        });
-
-                        try {
-                          // 사진 선택
-                          final file = await asset.file;
-                          if (file != null) {
-                            final savedPath = await _imageService.saveImage(file);
-                            final imageFile = File(savedPath);
-
-                            // EXIF 날짜 추출
-                            final exifDate = await _imageService.getImageDateTime(imageFile);
-
-                            if (mounted) {
+                      onTap: _isSelectingPhoto
+                          ? null
+                          : () async {
+                              // 로딩 시작
                               setState(() {
-                                _selectedImage = imageFile;
-                                if (exifDate != null) {
-                                  _selectedDate = exifDate;
-                                }
+                                _isSelectingPhoto = true;
                               });
 
-                              if (exifDate != null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '촬영 날짜로 자동 설정: ${exifDate.year}.${exifDate.month.toString().padLeft(2, '0')}.${exifDate.day.toString().padLeft(2, '0')}',
-                                    ),
-                                    backgroundColor: AppColors.accent,
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
+                              try {
+                                // 사진 선택
+                                final file = await asset.file;
+                                if (file != null) {
+                                  final savedPath =
+                                      await _imageService.saveImage(file);
+                                  final imageFile = File(savedPath);
+
+                                  // EXIF 날짜 추출
+                                  final exifDate = await _imageService
+                                      .getImageDateTime(imageFile);
+
+                                  if (mounted) {
+                                    setState(() {
+                                      _selectedImage = imageFile;
+                                      if (exifDate != null) {
+                                        _selectedDate = exifDate;
+                                      }
+                                    });
+
+                                    if (exifDate != null) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            '촬영 날짜로 자동 설정: ${exifDate.year}.${exifDate.month.toString().padLeft(2, '0')}.${exifDate.day.toString().padLeft(2, '0')}',
+                                          ),
+                                          backgroundColor: AppColors.accent,
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                }
+                              } finally {
+                                // 로딩 종료
+                                if (mounted) {
+                                  setState(() {
+                                    _isSelectingPhoto = false;
+                                  });
+                                }
                               }
-                            }
-                          }
-                        } finally {
-                          // 로딩 종료
-                          if (mounted) {
-                            setState(() {
-                              _isSelectingPhoto = false;
-                            });
-                          }
-                        }
-                      },
+                            },
                       child: Container(
                         width: 120,
                         height: 120,
@@ -466,7 +478,8 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
                               const ThumbnailSize.square(240),
                             ),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.done &&
+                              if (snapshot.connectionState ==
+                                      ConnectionState.done &&
                                   snapshot.data != null) {
                                 return Image.memory(
                                   snapshot.data!,
@@ -521,7 +534,8 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
               onTap: _selectDate,
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(12),

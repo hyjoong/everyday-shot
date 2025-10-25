@@ -4,70 +4,10 @@ import 'package:everyday_shot/constants/app_colors.dart';
 import 'package:everyday_shot/features/auth/providers/auth_provider.dart';
 import 'package:everyday_shot/features/photo/providers/photo_provider.dart';
 import 'package:everyday_shot/widgets/cached_photo_image.dart';
+import 'package:everyday_shot/screens/photo_detail_screen.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
-
-  void _showSettingsBottomSheet(BuildContext context) {
-    final authProvider = context.read<AuthProvider>();
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (bottomSheetContext) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 핸들바
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: AppColors.textTertiary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-
-            // 설정 옵션들
-            ListTile(
-              leading: const Icon(Icons.settings_outlined,
-                  color: AppColors.textSecondary),
-              title: const Text(
-                '설정',
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
-              ),
-              trailing: const Icon(Icons.chevron_right,
-                  color: AppColors.textTertiary),
-              onTap: () {
-                Navigator.pop(bottomSheetContext);
-                // TODO: 설정 페이지 구현
-              },
-            ),
-            const Divider(color: AppColors.divider),
-            ListTile(
-              leading: const Icon(Icons.logout, color: AppColors.error),
-              title: const Text(
-                '로그아웃',
-                style: TextStyle(color: AppColors.error, fontSize: 16),
-              ),
-              trailing: const Icon(Icons.chevron_right,
-                  color: AppColors.textTertiary),
-              onTap: () {
-                Navigator.pop(bottomSheetContext);
-                _handleLogout(context, authProvider);
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,14 +78,35 @@ class ProfileView extends StatelessWidget {
                 ),
               )
             else if (photos.isEmpty)
-              const SliverFillRemaining(
+              SliverFillRemaining(
                 child: Center(
-                  child: Text(
-                    '아직 사진이 없습니다',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 16,
-                    ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.photo_library_outlined,
+                        size: 80,
+                        color: AppColors.textTertiary.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        '아직 사진이 없습니다',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '+ 버튼을 눌러 첫 사진을 추가해보세요',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               )
@@ -162,9 +123,25 @@ class ProfileView extends StatelessWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final photo = photos[index];
-                      return CachedPhotoImage(
-                        imagePath: photo.imagePath,
-                        fit: BoxFit.cover,
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PhotoDetailScreen(
+                                initialPhoto: photo,
+                                allPhotos: photos,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Hero(
+                          tag: 'photo_${photo.id}',
+                          child: CachedPhotoImage(
+                            imagePath: photo.imagePath,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       );
                     },
                     childCount: photos.length,
@@ -199,40 +176,5 @@ class ProfileView extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  static Future<void> _handleLogout(
-      BuildContext context, AuthProvider authProvider) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text(
-          '로그아웃',
-          style: TextStyle(color: AppColors.textPrimary),
-        ),
-        content: const Text(
-          '로그아웃하시겠습니까?',
-          style: TextStyle(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              '로그아웃',
-              style: TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && context.mounted) {
-      await authProvider.signOut();
-    }
   }
 }
