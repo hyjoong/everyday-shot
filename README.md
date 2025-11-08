@@ -31,7 +31,7 @@
 ## 📱 앱 다운로드
 
 - 🍎 [App Store에서 설치하기](https://apps.apple.com/kr/app/%EB%A7%A4%EC%9D%BC%ED%95%9C%EC%BB%B7/6753706016)
-- 📲 **Google Play**: (비공개 테스트 중)
+- 📲 [Google Play에서 설치하기](https://play.google.com/store/apps/details?id=com.hyjoong.everydayshot)
 
 ---
 
