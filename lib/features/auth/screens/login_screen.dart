@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:everyday_shot/constants/app_colors.dart';
@@ -7,37 +6,12 @@ import 'package:everyday_shot/features/auth/providers/auth_provider.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  Future<void> _handleGoogleLogin(BuildContext context) async {
+  Future<void> _handleLogin(
+    BuildContext context,
+    Future<bool> Function() signInMethod,
+  ) async {
     final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.signInWithGoogle();
-
-    if (!success && context.mounted && authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _handleKakaoLogin(BuildContext context) async {
-    final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.signInWithKakao();
-
-    if (!success && context.mounted && authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _handleAppleLogin(BuildContext context) async {
-    final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.signInWithApple();
+    final success = await signInMethod();
 
     if (!success && context.mounted && authProvider.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,7 +94,10 @@ class LoginScreen extends StatelessWidget {
                     children: [
                       if (isAppleDevice) ...[
                         GestureDetector(
-                          onTap: () => _handleAppleLogin(context),
+                          onTap: () => _handleLogin(
+                            context,
+                            context.read<AuthProvider>().signInWithApple,
+                          ),
                           child: Container(
                             height: 56,
                             decoration: BoxDecoration(
@@ -153,7 +130,10 @@ class LoginScreen extends StatelessWidget {
 
                       // 카카오 로그인
                       GestureDetector(
-                        onTap: () => _handleKakaoLogin(context),
+                        onTap: () => _handleLogin(
+                          context,
+                          context.read<AuthProvider>().signInWithKakao,
+                        ),
                         child: Container(
                           height: 56,
                           decoration: BoxDecoration(
@@ -192,7 +172,10 @@ class LoginScreen extends StatelessWidget {
 
                       // Google 로그인
                       GestureDetector(
-                        onTap: () => _handleGoogleLogin(context),
+                        onTap: () => _handleLogin(
+                          context,
+                          context.read<AuthProvider>().signInWithGoogle,
+                        ),
                         child: Container(
                           height: 56,
                           decoration: BoxDecoration(

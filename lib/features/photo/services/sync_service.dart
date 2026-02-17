@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:everyday_shot/models/photo.dart';
 import 'package:everyday_shot/features/photo/services/database_service.dart';
 import 'package:everyday_shot/features/photo/services/firestore_service.dart';
@@ -74,7 +74,9 @@ class SyncService {
 
       // 2. 로컬 → 클라우드 업로드 (로컬에만 있는 새 사진)
       await uploadLocalPhotosToCloud(userId);
-    } catch (e) {}
+    } catch (e) {
+      debugPrint('동기화 중 오류 발생: $e');
+    }
   }
 
   /// 단일 사진 추가 및 동기화 (이미지 + 메타데이터)

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:everyday_shot/models/photo.dart';
 
 class FirestoreService {
@@ -65,7 +66,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      // 업데이트 실패 시 무시
+      debugPrint('Firestore 업데이트 실패: $e');
     }
   }
 
@@ -85,7 +86,7 @@ class FirestoreService {
 
       await docRef.delete();
     } catch (e) {
-      // 에러를 throw하지 않고 무시
+      debugPrint('Firestore 삭제 실패: $e');
     }
   }
 
@@ -102,19 +103,7 @@ class FirestoreService {
           .orderBy('date', descending: true)
           .get();
 
-      return querySnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return Photo(
-          id: doc.id,
-          date: DateTime.parse(data['date']),
-          imagePath: data['imageUrl'] ?? '',
-          memo: data['memo'],
-          createdAt:
-              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-          updatedAt:
-              (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        );
-      }).toList();
+      return querySnapshot.docs.map((doc) => Photo.fromFirestore(doc)).toList();
     } catch (e) {
       // 에러 발생 시 빈 목록 반환 (앱이 터지지 않도록)
       return [];
@@ -138,17 +127,7 @@ class FirestoreService {
       }
 
       final doc = querySnapshot.docs.first;
-      final data = doc.data() as Map<String, dynamic>;
-      return Photo(
-        id: doc.id,
-        date: DateTime.parse(data['date']),
-        imagePath: data['imageUrl'] ?? '',
-        memo: data['memo'],
-        createdAt:
-            (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        updatedAt:
-            (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      );
+      return Photo.fromFirestore(doc);
     } catch (e) {
       throw '사진 불러오기 실패: $e';
     }
@@ -160,19 +139,7 @@ class FirestoreService {
         .orderBy('date', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return Photo(
-          id: doc.id,
-          date: DateTime.parse(data['date']),
-          imagePath: data['imageUrl'] ?? '',
-          memo: data['memo'],
-          createdAt:
-              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-          updatedAt:
-              (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        );
-      }).toList();
+      return snapshot.docs.map((doc) => Photo.fromFirestore(doc)).toList();
     });
   }
 
