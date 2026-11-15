@@ -57,3 +57,6 @@ lib/firebase_options.dart
 # Environment variables (if used)
 .env
 .env.*
+
+# FVM Version Cache
+.fvm/

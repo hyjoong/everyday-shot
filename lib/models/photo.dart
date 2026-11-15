@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// 사진 모델 클래스
 class Photo {
   /// 고유 ID (UUID)
@@ -48,6 +50,19 @@ class Photo {
       memo: map['memo'] as String?,
       createdAt: DateTime.parse(map['createdAt'] as String),
       updatedAt: DateTime.parse(map['updatedAt'] as String),
+    );
+  }
+
+  /// Firestore 문서에서 Photo 객체 생성
+  factory Photo.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Photo(
+      id: doc.id,
+      date: DateTime.parse(data['date']),
+      imagePath: data['imageUrl'] ?? '',
+      memo: data['memo'],
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
