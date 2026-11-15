@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.4.1+12
+version: 1.4.2+13
 
 environment:
   sdk: ^3.5.4
@@ -60,10 +60,10 @@ dependencies:
   cached_network_image: ^3.4.1
 
   # Firebase
-  firebase_core: ^4.1.1
-  firebase_auth: ^6.1.0
-  cloud_firestore: ^6.0.2
-  firebase_storage: ^13.0.2
+  firebase_core: ^5.1.0
+  firebase_auth: ^7.0.1
+  cloud_firestore: ^7.1.0 # eMudhra 중간 CA 보안 패치 (iOS: FirebaseFirestore 12.19.3+)
+  firebase_storage: ^14.0.1
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^6.1.0
   crypto: ^3.0.6
@@ -89,6 +89,10 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  config:
+    # google_sign_in 6.x(GoogleSignIn 8)와 firebase-ios-sdk 13의 SPM 의존성이 충돌해 CocoaPods 유지
+    enable-swift-package-manager: false
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
