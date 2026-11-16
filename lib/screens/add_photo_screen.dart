@@ -40,6 +40,8 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
 
   /// 선택된 날짜의 갤러리 사진 로드
   Future<void> _loadTodayPhotos() async {
+    // Android는 갤러리 전체 접근 권한이 없어 이 목록을 보여주지 않는다.
+    if (Platform.isAndroid) return;
     setState(() {
       _loadingPhotos = true;
     });

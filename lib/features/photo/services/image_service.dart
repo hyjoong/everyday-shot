@@ -13,7 +13,11 @@ class ImageService {
   final Uuid _uuid = const Uuid();
 
   /// 특정 날짜의 갤러리 사진 가져오기
+  ///
+  /// Android는 Google Play 사진 권한 정책 때문에 갤러리 전체 접근 권한을 쓰지 않으므로
+  /// 빈 목록을 돌려준다. (사진 선택은 시스템 사진 선택기로 한다)
   Future<List<AssetEntity>> getPhotosForDate(DateTime date) async {
+    if (Platform.isAndroid) return [];
     try {
       // 권한 요청
       final PermissionState ps = await PhotoManager.requestPermissionExtend();
